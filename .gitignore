@@ -10,6 +10,7 @@ bin/*.obj
 bin/*.def
 bin/*.html
 bin/*.log
+docs/*.html
 tmp/
 *.tmp
 *.bak
