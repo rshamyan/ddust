@@ -1,34 +1,5 @@
-#################
-## Eclipse
-#################
-
-*.pydevproject
-.project
-.metadata
-bin/*.exe
-bin/*.obj
-bin/*.def
-bin/*.html
-bin/*.log
-docs/*.html
-tmp/
-*.tmp
-*.bak
-*.swp
-*~.nib
-local.properties
-.classpath
-.settings/
-.loadpath
-
-# External tool builders
-.externalToolBuilders/
-
-# Locally stored "Eclipse launch configurations"
-*.launch
-
-# CDT-specific
-.cproject
-
-# PDT-specific
-.buildpath
+eclipse/
+libeay32.dll
+libevent.dll
+ssleay32.dll
+ddust.exe
