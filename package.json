@@ -2,7 +2,7 @@
     "name": "ddust",
     "version": "0.0.1",
     "description": "CMS based on vibe.d",
-    "homepage": "https://sgithub.com/Zaramzan/ddust",
+    "homepage": "https://github.com/Zaramzan/ddust",
     "copyright": "Copyright © 2013, Shamyan Roman",
     "authors": ["zaramzan"],
     "libs-posix": ["dl"],
