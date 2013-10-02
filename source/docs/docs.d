@@ -39,9 +39,9 @@ class MongoDocsProvider : DocsProvider, IDocs
 			return id;
 		}
 		
-		throw new InvalidID(id);
+		//throw new InvalidID(id);
 		
-		return null;
+		//return BsonObjectID.fromString("000000000000000000000000");
 	}
 	
 	private bool exists(T)(T id)
@@ -50,11 +50,11 @@ class MongoDocsProvider : DocsProvider, IDocs
 		{
 			MongoCollection coll = db.getCollection(DOCS_COLLECTION);
 			
-			Bson res = coll.findOne(Bson(["_id":toID(id)]));
+			Bson res = coll.findOne(Bson(["_id":Bson(toID(id))]));
 			
 			return !res.isNull;
 		}
-		catch(Execption ex)
+		catch(Exception ex)
 		{
 			defaultErrorProcessor(ex);
 		}
@@ -126,23 +126,30 @@ class MongoDocsProvider : DocsProvider, IDocs
 		mixin(checker);
 		try
 		{
-			if (!exists(id))
+			if (!exists(docId))
 			{
-				throw new DocDoesntExist(id);
+				throw new DocDoesntExist(docId);
 			}
 			
-			if (!isValidDocumentType(comment, DocType.Comment))
+			if (!isValidComment(comment))
 			{
 				return false;
 			}
 			
 			MongoCollection coll = db.getCollection(DOCS_COLLECTION);
 			
-			comment._ref = Bson(toID(docId));
+			Bson req = Bson.emptyObject;
 			
-			coll.insert(comment);
+			foreach(string k,v; comment) 
+			{
+				req[k] = v;
+			}
 			
-			logInfo("[Docs]Added comment to id = %s", docID);
+			req["_ref"] = Bson(toID(docId));			
+			
+			coll.insert(req);
+			
+			logInfo("[Docs]Added comment to id = %s", docId);
 			
 			return true;
 		}
@@ -180,7 +187,7 @@ class MongoDocsProvider : DocsProvider, IDocs
 		return false;
 	}
 	
-	auto queryDoc(T, alias onError)(T id)
+	Bson queryDoc(T, alias onError = defaultErrorProcessor)(T id)
 	{
 		mixin(checker);
 		try
@@ -204,15 +211,97 @@ class MongoDocsProvider : DocsProvider, IDocs
 		return Bson(null);
 	}
 	
-	auto queryDocument(T, alias onError)(T id)
+	Bson[] queryDocs(alias onError = defaultErrorProcessor)(DocType type, int count = 0)
+	{
+		mixin(checker);
+		try
+		{
+			if (count < 0) 
+			{
+				throw new DocsInvalidQueryCount(count);
+			}
+			
+			MongoCollection coll = db.getCollection(DOCS_COLLECTION);
+			
+			auto res = coll.find(
+				Bson(["$query": Bson(["_type":Bson(cast(int)type)]), 
+					"$orderby":Bson(["date" : Bson(-1)]) ]),
+				Bson.emptyObject,
+				QueryFlags.None, 0, count);
+			
+			auto ret = new Bson[0];
+			
+			foreach(doc; res)
+			{
+				ret ~= doc;
+			}
+			
+			return ret;
+		}
+		catch(Exception ex)
+		{
+			onError(ex);
+		}
+		
+		return null;
+	}
+	
+	Bson[] queryDocuments(alias onError = defaultErrorProcessor)(int count = 0)
+	{
+		mixin(checker);
+		
+		return queryDocs!onError(DocType.Document, count);
+	}
+	
+	Bson queryDocument(T, alias onError)(T id)
 	{
 		mixin(checker);
 		return queryDoc!(T, onError)(id);
 	}
 	
-	auto queryComment(T, alias onError)(T id)
+	Bson queryComment(T, alias onError = defaultErrorProcessor)(T id)
 	{
 		mixin(checker);
 		return queryDoc!(T, onError)(id);
+	}
+	
+	Bson[] queryComments(T, alias onError = defaultErrorProcessor)(T id, int count = 0)
+	{
+		mixin(checker);
+		try
+		{
+			if (count < 0) 
+			{
+				throw new DocsInvalidQueryCount(count);
+			}
+			
+			if (!exists(id))
+			{
+				throw new DocDoesntExist(id);
+			}
+			
+			MongoCollection coll = db.getCollection(DOCS_COLLECTION);
+			
+			auto res = coll.find(
+				Bson(["$query": Bson(["_type":Bson(cast(int)DocType.Comment), "_ref": Bson(toID(id))]), 
+					"$orderby":Bson(["date" : Bson(1)]) ]),
+				Bson.emptyObject,
+				QueryFlags.None, 0, count);
+			
+			auto ret = new Bson[0];
+			
+			foreach(doc; res)
+			{
+				ret ~= doc;
+			}
+			
+			return ret;
+		}
+		catch(Exception ex)
+		{
+			onError(ex);
+		}
+		
+		return null;
 	}
 }

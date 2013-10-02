@@ -42,7 +42,8 @@ class MongoUsersProvider : UsersProvider, IUsers
 		{
 			MongoCollection coll = db.getCollection(USERS_COLLECTION);
 			
-			auto res = coll.findOne(Bson(["login":Bson(login)]));
+			auto res = coll.findOne(Bson(["login":Bson(login)]),
+				Bson(["_id":Bson(1)]));
 			
 			return !res.isNull;
 		}
@@ -110,12 +111,11 @@ class MongoUsersProvider : UsersProvider, IUsers
 			
 			MongoCollection coll = db.getCollection(USERS_COLLECTION);
 			
-			Bson res = coll.findOne(Bson(["login":Bson(login)]));
-			
-			const Json json = res.toJson();
+			Bson res = coll.findOne(Bson(["login":Bson(login)]), 
+				Bson(["_id":Bson(1), "passhash":Bson(1), "salt":Bson(1)]));
 	
 			bool ret = checkPassword(password, 
-				json.passhash.to!string, json.salt.to!string);		
+				res["passhash"].get!string, res["salt"].get!string);		
 				
 			logInfo("[Users]Authorization result for %s is %s", login, ret);
 			
@@ -129,7 +129,7 @@ class MongoUsersProvider : UsersProvider, IUsers
 		return false;
 	}
 	
-	Json queryUserInfo(alias onError = defaultErrorProcessor)(string login)
+	Bson queryUserInfo(alias onError = defaultErrorProcessor)(string login)
 	{
 		mixin(checker);
 		try
@@ -146,16 +146,17 @@ class MongoUsersProvider : UsersProvider, IUsers
 			
 			MongoCollection coll = db.getCollection(USERS_COLLECTION);
 			
-			Bson res = coll.findOne(Bson(["login":Bson(login)]));
+			Bson res = coll.findOne(Bson(["login":Bson(login)]),
+				Bson(["passhash":Bson(0), "salt":Bson(0)]));
 			
-			return res.toJson();
+			return res;
 		}
 		catch (Exception ex)
 		{
 			onError(ex);
 		}
 		
-		return Json(null);
+		return Bson.emptyObject;
 		
 	}
 	
@@ -219,7 +220,7 @@ class MongoUsersProvider : UsersProvider, IUsers
 			
 			MongoCollection coll = db.getCollection(USERS_COLLECTION);
 			
-			Bson res = coll.findOne(["login": login]);
+			Bson res = coll.findOne(["login": login], Bson(["_id":Bson(1)]));
 			
 			return res["_id"].get!BsonObjectID;
 		}
@@ -229,5 +230,40 @@ class MongoUsersProvider : UsersProvider, IUsers
 		}
 		
 		return BsonObjectID.fromString("000000000000000000000000");
+	}
+	
+	Bson[] queryUsers(alias onError = defaultErrorProcessor)(int count = 0)
+	{
+		mixin(checker);
+		try
+		{
+			if (count < 0) 
+			{
+				throw new UsersInvalidQueryCount(count);
+			}
+			
+			MongoCollection coll = db.getCollection(USERS_COLLECTION);
+			
+			auto res = coll.find(
+				Bson(["$query": Bson.emptyObject, 
+					"$orderby":Bson(["login" : Bson(1)]) ]),
+				["_id":1, "login":1],
+				QueryFlags.None, 0, count);
+			
+			auto ret = new Bson[0];
+			
+			foreach(doc; res)
+			{
+				ret ~= doc;
+			}
+			
+			return ret;
+		}
+		catch(Exception ex)
+		{
+			onError(ex);
+		}
+		
+		return null;
 	}
 }

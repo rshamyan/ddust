@@ -51,6 +51,13 @@ interface IUsers
 	*/
 	auto queryID(alias onError)(string login);
 	
+	/**
+	* Params:
+	* 	count = number, that represent max query size. If count = 0, then will queried all users
+	* Returns:
+	* 	array of users(id, login) in alphabetic order	
+	*/
+	auto queryUsers(alias onError)(int count); 
 }
 
 mixin template usersValidator()
@@ -85,7 +92,7 @@ mixin template usersValidator()
 		return to!bool(match(username, r"[a-zA-Z][a-zA-Z0-9.\\-_]{3,20}"));
 	}
 	
-	bool isValidUserInfo(in Bson userInfo)
+	bool isValidUserInfo(T)(in T userInfo)
 	{
 		Json json = userInfo.toJson();
 		
@@ -234,5 +241,13 @@ class UserAlreadyRegistered: UsersException
 	this(string login)
 	{
 		super("[Users]Login %s already registered", login);
+	}
+}
+
+class UsersInvalidQueryCount: UsersException
+{
+	this(int i)
+	{
+		super("[Users]Invalid query count %d", i);
 	}
 }
