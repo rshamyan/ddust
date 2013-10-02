@@ -4,6 +4,8 @@ import vibe.d;
 
 import users.iusers;
 
+import util;
+
 class MongoUsersProvider : UsersProvider, IUsers
 {
 	/// default users collection
@@ -11,7 +13,7 @@ class MongoUsersProvider : UsersProvider, IUsers
 	
 	private MongoClient db;
 	
-	private this()
+	private this() //block default constructor
 	{
 		
 	}
@@ -20,9 +22,22 @@ class MongoUsersProvider : UsersProvider, IUsers
 	{
 		db = connectMongoDB(dbAddress);
 	}
-			
-	bool isLoginRegistered(string login, Processor onError = &defaultErrorProcessor) @property
+	
+	this(string dbAdrress, ushort port)
 	{
+		db = connectMongoDB(dbAdrress, port);
+	}
+	
+	private static const char[] checker = 
+		"static if ((!is(typeof(onError) : Processor))&&(!is(typeof(&onError): Processor)))
+		{
+			pragma(msg ,\"[Users]Typeof onError must be \", Processor,\" not \", typeof(onError));
+			static assert(false);
+		}";
+			
+	bool isLoginRegistered(alias onError = defaultErrorProcessor)(string login) @property
+	{
+		mixin(checker);
 		try
 		{
 			MongoCollection coll = db.getCollection(USERS_COLLECTION);
@@ -40,8 +55,9 @@ class MongoUsersProvider : UsersProvider, IUsers
 	
 	}
 	
-	bool registerUser(string login, string password, Processor onError = &defaultErrorProcessor)
+	bool registerUser(alias onError = defaultErrorProcessor)(string login, string password)
 	{	
+		mixin(checker);
 		try
 		{
 			if(isLoginRegistered(login))
@@ -72,8 +88,9 @@ class MongoUsersProvider : UsersProvider, IUsers
 		
 	}
 	
-	bool queryAuthorization(string login, string password, Processor onError = &defaultErrorProcessor)
-	{			
+	bool queryAuthorization(alias onError = defaultErrorProcessor)(string login, string password)
+	{	
+		mixin(checker);		
 		try
 		{
 			if (!isValidPassword(password))
@@ -112,8 +129,9 @@ class MongoUsersProvider : UsersProvider, IUsers
 		return false;
 	}
 	
-	Json queryUserInfo(string login, Processor onError = &defaultErrorProcessor)
+	Json queryUserInfo(alias onError = defaultErrorProcessor)(string login)
 	{
+		mixin(checker);
 		try
 		{
 			if (!isValidLogin(login))
@@ -141,8 +159,9 @@ class MongoUsersProvider : UsersProvider, IUsers
 		
 	}
 	
-	bool updateProfile(string login, Bson userInfo, Processor onError = &defaultErrorProcessor)
+	bool updateProfile(alias onError = defaultErrorProcessor)(string login, in Bson userInfo)
 	{
+		mixin(checker);
 		try
 		{
 			if (!isValidLogin(login))
@@ -181,5 +200,34 @@ class MongoUsersProvider : UsersProvider, IUsers
 		}
 		
 		return false;
+	}
+	
+	BsonObjectID queryID(alias onError = defaultErrorProcessor)(string login)
+	{
+		mixin(checker);
+		try
+		{
+			if (!isValidLogin(login))
+			{
+				throw new UsersInvalidData("login", login);
+			}
+			
+			if (!isLoginRegistered(login))
+			{
+				throw new UserNotFound(login);
+			}
+			
+			MongoCollection coll = db.getCollection(USERS_COLLECTION);
+			
+			Bson res = coll.findOne(["login": login]);
+			
+			return res["_id"].get!BsonObjectID;
+		}
+		catch (Exception ex)
+		{
+			onError(ex);
+		}
+		
+		return BsonObjectID.fromString("000000000000000000000000");
 	}
 }

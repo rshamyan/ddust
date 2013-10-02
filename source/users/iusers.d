@@ -9,20 +9,7 @@ import std.regex;
 
 import vibe.d;
 
-package alias void function(Exception) Processor;
-
-package void defaultErrorProcessor(Exception ex = null)
-{
-	if (ex is null) 
-	{
-		enforce(false);
-	}
-	else 
-	{
-		//logError("[Error]%s(%s:%d)",ex.msg, ex.file, ex.line);
-		logError("[Error]%s\n%s", ex.msg, ex.info);
-	}
-}
+import util;
 
 /**
 * Interface for module users
@@ -33,29 +20,36 @@ package void defaultErrorProcessor(Exception ex = null)
 interface IUsers
 {
 	/// check, is login registered
-	bool isLoginRegistered(string login, Processor onError);
+	bool isLoginRegistered(alias onError)(string login);
 	
 	/// register user
-	bool registerUser(string login, string password, Processor onError);
+	bool registerUser(alias onError)(string login, string password);
 	
 	/**
 	* Returns:
 	*	true if login and password are contained in db
 	*/
-	bool queryAuthorization(string login, string password, Processor onError);
+	bool queryAuthorization(alias onError)(string login, string password);
 	
 	/**
 	* Returns:
-	* 	Json which repsesent all information about login
+	* 	Type which repsesent all information about login
 	*	or Json(null)
 	*/
-	Json queryUserInfo(string login, Processor onError);
+	auto queryUserInfo(alias onError)(string login);
 	
 	/**
 	* Params:
-	* 	userInfo = Bson which contains fields to be replaced or added
+	* 	userInfo = Type (see implementation) which contains fields to be replaced or added
 	*/
-	bool updateProfile(string login, Bson userInfo, Processor onError = &defaultErrorProcessor);
+	bool updateProfile(alias onError)(string login, in auto userInfo);
+	
+	/**
+	* Returns:
+	* 	id which represent user in database
+	*
+	*/
+	auto queryID(alias onError)(string login);
 	
 }
 
