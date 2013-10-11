@@ -1,0 +1,45 @@
+extends ddust.layout
+
+block body_left
+		// document
+		h1
+			a(href='/blog/#{doc.id}') #{doc.title}
+		p.lead by
+			a(href='/user/#{doc.author.id}') #{doc.author.name}
+		hr
+		P
+			span.glyphicon.glyphicon-time
+			| Posted on #{doc.datestr}
+		hr
+		p #{doc.bodystr}
+		hr
+		.well
+			h4 Leave a comment:
+			form(role='form')
+				.formgroup
+					textarea.form-control(rows='3')
+				button.btn.btn-primary(type='submit') Submit
+		hr
+		// comments
+		- foreach(com; coms)
+			h3 #{com.author.name}
+				small #{com.datestr}
+			p #{com.bodystr}
+
+
+block body_right
+	.well
+		h4 Blog Search
+		.input-group
+			input.form-control(type='text', placeholder='google search')
+			span.input-group-btn
+				button.btn.btn-default(type='button')
+					span.glyphicon.glyphicon-search
+
+	.well
+		h4 Blog Categories
+		p some categories
+
+	.well
+		h4 Side Widget Well
+		p deafult bootstrap widget well
