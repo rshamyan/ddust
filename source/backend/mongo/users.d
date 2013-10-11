@@ -1,9 +1,8 @@
-module users.users;
+module backend.mongo.users;
 
 import vibe.d;
 
-import users.iusers;
-
+import backend.iusers;
 import util;
 
 class MongoUsersProvider : IUsersProvider

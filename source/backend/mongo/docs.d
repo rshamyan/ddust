@@ -1,8 +1,8 @@
-module docs.docs;
+module backend.mongo.docs;
 
 import vibe.d;
 
-import docs.idocs;
+import backend.idocs;
 
 import util;
 

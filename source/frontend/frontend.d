@@ -2,10 +2,10 @@ module frontend.frontend;
 
 import vibe.d;
 
-import docs.docs;
-import docs.idocs;
-import users.iusers;
-import users.users;
+import backend.idocs;
+import backend.iusers;
+import backend.mongo.docs;
+import backend.mongo.users;
 import frontend.blog;
 
 

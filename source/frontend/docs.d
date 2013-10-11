@@ -2,14 +2,11 @@ module frontend.docs;
 
 import vibe.d;
 
+import backend.iusers;
 import frontend.users;
-import users.iusers;
 
 package mixin template doc(T)
 {
-	
-	import users.iusers;
-	import util;
 	
 	static T fromBson(in Bson doc)
 	{
@@ -61,7 +58,7 @@ package mixin template doc(T)
 		author = User.fromID(this.author.id, usersProvider);
 	}
 	
-	mixin dateconv;
+	mixin util.dateconv;
 }
 
 package struct Document

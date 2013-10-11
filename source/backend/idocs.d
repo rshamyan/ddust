@@ -1,4 +1,4 @@
-module docs.idocs;
+module backend.idocs;
 
 import std.conv;
 import std.string;

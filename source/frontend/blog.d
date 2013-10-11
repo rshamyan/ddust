@@ -5,8 +5,6 @@ mixin template blog()
 {	
 	import std.regex;
 	import vibe.d;
-	import docs.idocs;
-	import docs.docs;
 	import frontend.docs;
 	
 	void setupBlog()
