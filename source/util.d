@@ -4,11 +4,21 @@ import vibe.d;
 
 alias void function (Exception) Processor;
 
+alias void delegate (Exception) Proc;
+
 void defaultErrorProcessor(Exception ex)
 {
 	logError("[Error]%s\n%s", ex.msg, ex.info);
 }
 
+Proc defaultErrorProc;
+static this()
+{
+	defaultErrorProc = delegate (Exception ex)
+	{ 
+		logError("[Error]%s\n%s", ex.msg, ex.info);
+	};
+}
 
 mixin template dateconv()
 {

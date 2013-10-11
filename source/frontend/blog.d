@@ -4,6 +4,7 @@ module frontend.blog;
 mixin template blog()
 {	
 	import std.regex;
+	import std.functional;
 	import vibe.d;
 	import frontend.docs;
 	
@@ -18,7 +19,7 @@ mixin template blog()
 		
 		BlogDocument[] docs = new BlogDocument[0];
 		
-		foreach(each; docsProvider.queryBlogDocuments(10))
+		foreach(each; docsProvider.queryBlogDocuments(-10))
 		{
 			BlogDocument doc = BlogDocument.fromBson(each);
 			doc.fillAuthorInfo(usersProvider);
@@ -27,6 +28,11 @@ mixin template blog()
 		}
 		
 		res.renderCompat!("ddust.blog.dt", HTTPServerRequest, "req", BlogDocument[], "docs")(req, docs);
+	}
+	
+	public static void getMsg(out string msg, Exception ex)
+	{
+		msg = ex.msg;
 	}
 	
 	void blogSingle(HTTPServerRequest req, HTTPServerResponse res)
@@ -53,7 +59,16 @@ mixin template blog()
 		
 		
 		auto id = BsonObjectID.fromString(m[1]);
-		Bson bdoc = docsProvider.queryBlogDocument(id);
+		
+		void onError(Exception ex)
+		{
+			res.statusCode = HTTPStatus.NotFound;
+			res.writeJsonBody(ex.msg);
+		}
+		
+		string msg;
+		Bson bdoc = docsProvider.queryBlogDocument(id, &onError);
+		
 		BlogDocument doc = BlogDocument.fromBson(bdoc);
 		doc.fillAuthorInfo(usersProvider);
 		
@@ -61,7 +76,6 @@ mixin template blog()
 		
 		foreach(each; docsProvider.queryComments(BsonObjectID.fromString(m[1]), 10))
 		{
-			logInfo("2");
 			Comment com = Comment.fromBson(each);
 			com.fillAuthorInfo(usersProvider);
 			

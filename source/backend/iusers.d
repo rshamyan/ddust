@@ -119,9 +119,8 @@ interface IUsersProvider: Immortal
 	protected bool isLoginRegisteredImpl(string login);
 	
 	/// register user
-	final bool registerUser(alias onError = defaultErrorProcessor)(string login, string password)
+	final bool registerUser(string login, string password, Proc onError = defaultErrorProc)
 	{
-		mixin(procCheck);
 		try
 		{
 			if (!isValidPassword(password))
@@ -134,7 +133,7 @@ interface IUsersProvider: Immortal
 				throw new UsersInvalidData("login", login);
 			}
 			
-			return registerUsersImpl(login, password);
+			return registerUserImpl(login, password);
 		}
 		catch(Exception ex)
 		{
@@ -150,9 +149,8 @@ interface IUsersProvider: Immortal
 	* Returns:
 	*	true if login and password are contained in db
 	*/
-	final bool queryAuthorization(alias onError = defaultErrorProcessor)(string login, string password)
+	final bool queryAuthorization(string login, string password, Proc onError = defaultErrorProc)
 	{
-		mixin(procCheck);
 		try
 		{
 			if (!isValidPassword(password))
@@ -182,9 +180,8 @@ interface IUsersProvider: Immortal
 	* 	Type which represent all information about login
 	*	or null on exception
 	*/
-	final Bson queryUserInfo(alias onError = defaultErrorProcessor)(string login)
+	final Bson queryUserInfo(string login, Proc onError = defaultErrorProc)
 	{
-		mixin(procCheck);
 		try
 		{
 			if (!isValidLogin(login))
@@ -207,9 +204,8 @@ interface IUsersProvider: Immortal
 	/**
 	* query userinfo from id
 	*/
-	final Bson queryUserInfoFromID(alias onError = defaultErrorProcessor)(BID id)
+	final Bson queryUserInfoFromID(BID id, Proc onError = defaultErrorProc)
 	{
-		mixin(procCheck);
 		try
 		{
 			return queryUserInfoFromIDImpl(id);
@@ -228,9 +224,8 @@ interface IUsersProvider: Immortal
 	* Params:
 	* 	userInfo = Type (Bson) which contains fields to be replaced or added
 	*/
-	final bool updateProfile(alias onError = defaultErrorProcessor)(string login, in Bson userInfo)
+	final bool updateProfile(string login, in Bson userInfo, Proc onError = defaultErrorProc)
 	{
-		mixin(procCheck);
 		try
 		{
 			if (!isValidLogin(login))
@@ -243,7 +238,7 @@ interface IUsersProvider: Immortal
 				throw new UsersInvalidData("userInfo", userInfo.toJson());
 			}
 			
-			return updateProfileImpl(userInfo);
+			return updateProfileImpl(login, userInfo);
 		}
 		catch(Exception ex)
 		{
@@ -260,9 +255,8 @@ interface IUsersProvider: Immortal
 	* 	id which represent user in database
 	*
 	*/
-	final BID queryID(alias onError = defaultErrorProcessor)(string login)
+	final BID queryID(string login, Proc onError = defaultErrorProc)
 	{
-		mixin(procCheck);
 		try
 		{
 			if (!isValidLogin(login))
@@ -289,9 +283,8 @@ interface IUsersProvider: Immortal
 	* Returns:
 	* 	array of users(id, login) in alphabetic order	
 	*/
-	final Bson[] queryUsers(alias onError = defaultErrorProcessor)(int count = 0)
+	final Bson[] queryUsers(int count = 0, Proc onError = defaultErrorProc)
 	{
-		mixin(procCheck);
 		try
 		{
 			return queryUsersImpl(count);
@@ -375,87 +368,6 @@ mixin template usersValidator()
 	}
 }
 
-private interface IUsersSecurity
-{
-	static protected enum HASH_POWER = 1042; // don't touch!
-	
-	static protected enum SALT_LENGTH_MIN = 10;
-	static protected enum SALT_LENGTH_MAX = 20;
-	
-	static assert(SALT_LENGTH_MIN < SALT_LENGTH_MAX);
-	
-	static protected alias Tuple!(string, "hash", string, "salt") GeneratedPassHash;
-	
-	static protected GeneratedPassHash genPasshash2Store(string passhash)
-	out(result)
-	{
-		assert(checkPassword(passhash, result.hash, result.salt));
-	}
-	body
-	{
-		GeneratedPassHash res;
-	
-		string salt = generateSalt();
-		ubyte[16] result = md5Of(salt ~ passhash ~ salt);
-	
-		foreach(i; 0..HASH_POWER-1)
-		{
-			MD5 md;
-			md.start();
-			md.put(cast(ubyte[])salt[]);
-			md.put(result[]);
-			md.put(cast(ubyte[])salt[]);
-			result = md.finish();
-		}
-	
-		res.hash = toHexString(result).idup;
-		res.salt = salt;
-		return res;
-	}
-	
-	static protected string generateSalt()
-	out(value)
-	{
-		assert(value.length < SALT_LENGTH_MAX);
-		assert(value.length >= SALT_LENGTH_MIN);
-	}
-	body
-	{
-		static string alph = letters ~ digits;
-		auto saltBuilder = appender!string();
-		Mt19937 gen;
-		gen.seed(unpredictableSeed);
-	
-		foreach(i; SALT_LENGTH_MIN .. SALT_LENGTH_MAX)
-		{
-			saltBuilder.put(alph[uniform(0, alph.length, gen)]);
-		}
-		return saltBuilder.data;
-	}
-	
-	static final protected bool checkPassword(string hash2Check, string storedHash, string salt)
-	in
-	{
-		assert(salt.length < SALT_LENGTH_MAX);
-		assert(salt.length >= SALT_LENGTH_MIN);
-	}
-	body
-	{
-		ubyte[16] result = md5Of(salt ~ hash2Check ~ salt);
-	
-		foreach(i; 0..HASH_POWER-1)
-		{
-			MD5 md;
-			md.start();
-			md.put(cast(ubyte[])salt[]);
-			md.put(result[]);
-			md.put(cast(ubyte[])salt[]);
-			result = md.finish();
-		}
-	
-		return toHexString(result) == storedHash; 
-	}
-}
 
 class UsersException: Exception
 {

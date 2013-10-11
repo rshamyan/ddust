@@ -36,9 +36,8 @@ interface IDocsProvider:Immortal
 	/**
 	* add Document
 	*/
-	final bool addDocument(T, alias onError = defaultErrorProcessor)(in Bson doc)
+	final bool addDocument(in Bson doc, Proc onError = defaultErrorProc)
 	{
-		mixin(procCheck);
 		try
 		{
 			if (!isValidDocType(doc, DocType.Document))
@@ -61,12 +60,11 @@ interface IDocsProvider:Immortal
 	/**
 	* remove Document
 	*/
-	final bool removeDocument(alias onError = defaultErrorProcessor)(BID id)
+	final bool removeDocument(BID id, Proc onError = defaultErrorProc)
 	{
-		mixin(procCheck);
 		try
 		{
-			return removeDocumetnImpl(id);
+			return removeDocumentImpl(id);
 		}
 		catch(Exception ex)
 		{
@@ -81,9 +79,8 @@ interface IDocsProvider:Immortal
 	/**
 	* add Comment to id
 	*/
-	final bool addComment(alias onError = defaultErrorProcessor)(BID docId, in Bson comment)
+	final bool addComment(BID docId, in Bson comment, Proc onError = defaultErrorProc)
 	{
-		mixin(procCheck);
 			try
 			{
 				if (!isValidComment(comment))
@@ -106,9 +103,8 @@ interface IDocsProvider:Immortal
 	/**
 	* remove Comment
 	*/
-	final bool removeComment(alias onError = defaultErrorProcessor)(BID id)
+	final bool removeComment(BID id, Proc onError = defaultErrorProc)
 	{
-		mixin(procCheck);
 		try
 		{
 			return removeCommentImpl(id);
@@ -128,9 +124,8 @@ interface IDocsProvider:Immortal
 	* Params:
 	*	id = document id
 	*/
-	final Bson queryDocument(alias onError = defaultErrorProcessor)(BID id)
+	final Bson queryDocument(BID id, Proc onError = defaultErrorProc)
 	{
-		mixin(procCheck);
 		try
 		{
 			return queryDocumentImpl(id);
@@ -150,9 +145,8 @@ interface IDocsProvider:Immortal
 	* Params:
 	*	id = comment id
 	*/
-	final Bson queryComment(alias onError = defaultErrorProcessor)(BID id)
+	final Bson queryComment(BID id, Proc onError = defaultErrorProc)
 	{
-		mixin(procCheck);
 		try
 		{
 			return queryCommentImpl(id);
@@ -175,9 +169,8 @@ interface IDocsProvider:Immortal
 	* 	If count > 0 then returns documents from newest to oldest. 
 	*	If count < 0 then returns documents from oldest to newest
 	*/
-	final Bson[] queryDocuments(alias onError = defaultErrorProcessor)(int count = 0)
+	final Bson[] queryDocuments(int count = 0, Proc onError = defaultErrorProc)
 	{
-		mixin(procCheck);
 		try
 		{
 			return queryDocumentsImpl(count);
@@ -201,9 +194,8 @@ interface IDocsProvider:Immortal
 	* 	If count > 0 then returns comments from newest to oldest. 
 	*	If count < 0 then returns comments from oldest to newest
 	*/
-	final Bson[] queryComments(alias onError = defaultErrorProcessor)(BID id, int count = 0)
+	final Bson[] queryComments(BID id, int count = 0, Proc onError = defaultErrorProc)
 	{
-		mixin(procCheck);
 		try
 		{
 			return queryCommentsImpl(id, count);
@@ -221,9 +213,8 @@ interface IDocsProvider:Immortal
 	/**
 	* add blogDocument
 	*/
-	final bool addBlogDocument(alias onError = defaultErrorProcessor)(Bson doc)
+	final bool addBlogDocument(Bson doc, Proc onError = defaultErrorProc)
 	{
-		mixin(procCheck);
 		try
 		{
 			if (!isValidBlogDocument(doc))
@@ -248,12 +239,11 @@ interface IDocsProvider:Immortal
 	/**
 	* remove blog document
 	*/
-	final bool removeBlogDocument(alias onError = defaultErrorProcessor)(BID id)
+	final bool removeBlogDocument(BID id, Proc onError = defaultErrorProc)
 	{
-		mixin(procCheck);
 		try
 		{
-			return removeBlogDocumentImpl(doc);
+			return removeBlogDocumentImpl(id);
 		}
 		catch(Exception ex)
 		{
@@ -268,9 +258,8 @@ interface IDocsProvider:Immortal
 	/**
 	* add blog category
 	*/
-	final bool addBlogCategory(alias onError = defaultErrorProcessor)(Bson cat)
+	final bool addBlogCategory(Bson cat, Proc onError = defaultErrorProc)
 	{
-		mixin(procCheck);
 		try
 		{
 			if (!isValidBlogCategory(cat))
@@ -293,9 +282,8 @@ interface IDocsProvider:Immortal
 	/**
 	* remove blog category
 	*/
-	final bool removeBlogCategory(alias onError = defaultErrorProcessor)(BID catID)
+	final bool removeBlogCategory(BID catID, Proc onError = defaultErrorProc)
 	{
-		mixin(procCheck);
 		try
 		{
 			return removeBlogCategoryImpl(catID);
@@ -318,9 +306,8 @@ interface IDocsProvider:Immortal
 	* 	If count > 0 then returns blog documents from newest to oldest. 
 	*	If count < 0 then returns blog documents from oldest to newest
 	*/	
-	final Bson[] queryBlogDocuments(alias onError = defaultErrorProcessor)(int count = 0)
+	final Bson[] queryBlogDocuments(int count = 0, Proc onError = defaultErrorProc)
 	{
-		mixin(procCheck);
 		try
 		{
 			return queryBlogDocumentsImpl(count);
@@ -344,9 +331,8 @@ interface IDocsProvider:Immortal
 	* 	If count > 0 then returns blog documents from newest to oldest. 
 	*	If count < 0 then returns blog documents from oldest to newest
 	*/
-	final Bson[] queryBlogDocuments(alias onError = defaultErrorProcessor)(int count, BID catId)
+	final Bson[] queryBlogDocuments(int count, BID catId, Proc onError = defaultErrorProc)
 	{
-		mixin(procCheck);
 		try
 		{
 			return queryBlogDocumentsImpl(count, catId);
@@ -364,9 +350,8 @@ interface IDocsProvider:Immortal
 	/**
 	* query blog document form id
 	*/
-	final Bson queryBlogDocument(alias onError = defaultErrorProcessor)(BID id)
+	final Bson queryBlogDocument(BID id, Proc onError = defaultErrorProc)
 	{
-		mixin(procCheck);
 		try
 		{
 			return queryBlogDocumentImpl(id);
