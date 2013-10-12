@@ -9,6 +9,7 @@ import backend.mongo.users;
 
 import frontend.blog;
 import frontend.error;
+import frontend.users;
 
 
 class FrontEnd
@@ -43,15 +44,17 @@ class FrontEnd
 		
 		setupModules();
 		
-		listenHTTP(settings, router); 
+		listenHTTP(settings, router);
 	}
 	
 	mixin blog;
 	mixin errorPage;
+	mixin usersPages;
 	private void setupModules()
 	{
 		setupBlog();
 		setupErrorPage();
+		setupUsersPages();
 	}
 	
 	this()

@@ -1,14 +1,12 @@
 module frontend.users;
 
 import vibe.d;
+import backend.iusers;
+import std.conv;
+import util;
 
 package struct User
-{	
-	import backend.iusers;
-	import std.conv;
-	import util;
-	import vibe.d;
-	
+{			
 	string login;
 	
 	string username;
@@ -66,5 +64,79 @@ package struct User
 		{
 			return username;
 		}
+	}
+}
+
+package mixin template usersPages()
+{
+	import util;
+	import backend.iusers;
+	
+	enum LOGIN_STATUS:string
+	{
+		OK = "Authorization was successful",
+		INVALID = "Login or password has incorrect format"
+	}
+	
+	struct LoginData
+	{
+		string login;
+		
+		string password;
+		
+		mixin usersValidator;
+		
+		LOGIN_STATUS status() @property
+		{
+			if ((!isValidLogin(login))||(!isValidPassword(login))) return LOGIN_STATUS.INVALID;
+			return LOGIN_STATUS.OK;
+		}
+	}
+	
+	void login(HTTPServerRequest req, HTTPServerResponse res)
+	{
+		res.renderCompat!("ddust.login.dt", HTTPServerRequest,"req", MSG, "message")(req, MSG(false,""));
+	}
+	
+	void postLogin(HTTPServerRequest req, HTTPServerResponse res)
+	{
+		LoginData loginData;
+		
+		loadFormData(req, loginData, "auth");
+		
+		if (loginData.status == LOGIN_STATUS.OK)
+		{
+			auto msg = usersProvider.queryAuthorization(loginData.login, loginData.password);			
+			
+			if (msg)
+			{
+				if (req.session !is null)
+				{
+					res.terminateSession();
+				}
+				auto session = res.startSession();
+				session["login"] = loginData.login;
+				session["logon_time"] = Clock.currTime().toISOExtString();
+				session["ip"]= req.host();
+				res.redirect("/");
+
+			} 
+			else
+			{
+				res.renderCompat!("ddust.login.dt", HTTPServerRequest, "req", MSG, "message")(req,
+					MSG(true,"Authorization failed"));
+			}
+		}
+		else 
+		{
+			res.renderCompat!("ddust.login.dt", HTTPServerRequest, "req", MSG, "message")(req, 
+				MSG(true, loginData.status));
+		}
+	}
+	
+	void setupUsersPages()
+	{
+		router.get("/login", &login);
+		router.post("/login", &postLogin);
 	}
 }

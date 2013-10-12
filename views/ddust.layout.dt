@@ -30,14 +30,9 @@ html
 						li
 							a(href='/contact') Contact
 
+		block body
+
 		.container
-			.row
-				.col-lg-8
-					block body_left
-
-				.col-lg-4
-					block body_right
-
 			hr
 			footer
 				.row

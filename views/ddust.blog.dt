@@ -1,35 +1,38 @@
 extends ddust.layout
 
-block body_left
-	- foreach(doc; docs)
-		h1
-			a(href='/blog/#{doc.id}') #{doc.title}
-		p.lead by
-			a(href='/user/#{doc.author.id}') #{doc.author.name}
-		hr
-		P
-			span.glyphicon.glyphicon-time
-			| Posted on #{doc.datestr}
-		hr
-		p #{doc.shortstr}
-		a.btn.btn-primary(href='/blog/#{doc.id}')
-			| Read more
-			span.glyphicon.glyphicon-chevron-right
-		hr
 
-block body_right
-	.well
-		h4 Blog Search
-		.input-group
-			input.form-control(type='text', placeholder='google search')
-			span.input-group-btn
-				button.btn.btn-default(type='button')
-					span.glyphicon.glyphicon-search
+block body
+	.container
+		.row
+			.col-lg-8
+				- foreach(doc; docs)
+					h1
+						a(href='/blog/#{doc.id}') #{doc.title}
+					p.lead by
+						a(href='/user/#{doc.author.id}') #{doc.author.name}
+					hr
+					P
+						span.glyphicon.glyphicon-time
+						| Posted on #{doc.datestr}
+					hr
+					p #{doc.shortstr}
+					a.btn.btn-primary(href='/blog/#{doc.id}')
+						| Read more
+						span.glyphicon.glyphicon-chevron-right
+					hr
 
-	.well
-		h4 Blog Categories
-		p some categories
+			.col-lg-4
+				.well
+					h4 Blog Search
+					.input-group
+						input.form-control(type='text', placeholder='google search')
+						span.input-group-btn
+							button.btn.btn-default(type='button')
+								span.glyphicon.glyphicon-search
+				.well
+					h4 Blog Categories
+					p some categories
 
-	.well
-		h4 Side Widget Well
-		p deafult bootstrap widget well
+				.well
+					h4 Side Widget Well
+					p deafult bootstrap widget well
