@@ -7,6 +7,7 @@ mixin template blog()
 	import std.functional;
 	import vibe.d;
 	import frontend.docs;
+	import backend.idocs;
 	
 	void setupBlog()
 	{
@@ -54,22 +55,32 @@ mixin template blog()
 		else if (m[1].length != 24)
 		{
 			res.statusCode = HTTPStatus.NotFound;
+			
 			return;
 		}
 		
 		
 		auto id = BsonObjectID.fromString(m[1]);
 		
+		bool error = false;
 		void onError(Exception ex)
 		{
-			res.statusCode = HTTPStatus.NotFound;
-			res.writeJsonBody(ex.msg);
+			if (cast(DocDoesntExist) ex)
+			{
+				res.statusCode = HTTPStatus.NotFound;
+			}
+			else throw ex;
+			//res.statusPhrase = ex.msg;
+			error = true;
+			//throw new Exception(ex.msg);
 		}
 		
-		string msg;
 		Bson bdoc = docsProvider.queryBlogDocument(id, &onError);
 		
+		if (error) return;
+		
 		BlogDocument doc = BlogDocument.fromBson(bdoc);
+		
 		doc.fillAuthorInfo(usersProvider);
 		
 		Comment[] coms = new Comment[0];

@@ -189,7 +189,7 @@ interface IDocsProvider:Immortal
 	* query comments to id
 	* Params:
 	* 	id = comments id
-	* 	count = quering size. If count = 0 then will queried all comments referencing to id from newest to oldest 
+	* 	count = quyering size. If count = 0 then will queried all comments referencing to id from newest to oldest 
 	* Returns:
 	* 	If count > 0 then returns comments from newest to oldest. 
 	*	If count < 0 then returns comments from oldest to newest

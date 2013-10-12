@@ -6,7 +6,9 @@ import backend.idocs;
 import backend.iusers;
 import backend.mongo.docs;
 import backend.mongo.users;
+
 import frontend.blog;
+import frontend.error;
 
 
 class FrontEnd
@@ -45,9 +47,11 @@ class FrontEnd
 	}
 	
 	mixin blog;
+	mixin errorPage;
 	private void setupModules()
 	{
 		setupBlog();
+		setupErrorPage();
 	}
 	
 	this()
