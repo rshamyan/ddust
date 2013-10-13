@@ -1,6 +1,7 @@
 module util;
 
 import vibe.d;
+import std.digest.md;
 
 alias void function (Exception) Processor;
 
@@ -49,3 +50,11 @@ interface Immortal
 }
 
 alias BsonObjectID BID;
+
+
+string md5str(string str)
+{
+	ubyte[16] hash = md5Of(str);
+	
+	return toHexString(hash).idup;
+}

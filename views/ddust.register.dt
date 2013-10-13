@@ -1,0 +1,37 @@
+extends ddust.layout
+
+block body
+	.container
+		.row
+			.col-lg-6.col-lg-offset-3
+				.well
+					form.form-horizontal(action='/register', method='POST', id='registerForm')
+						fieldset
+							legend Register Form
+
+							//login
+							.form-group
+								label.col-lg-2.control-label(for='inputLogin') Login
+								.col-lg-10
+									input.form-control(type='text', placeholder='Login', id='inputLogin', name='reg_login')
+
+							//password
+							.form-group
+								label.col-lg-2.control-label(for='inputPassword') Password
+								.col-lg-10
+									input.form-control(type='password', placeholder='Password', id='inputPassword', name='reg_password')
+
+							//password
+							.form-group
+								label.col-lg-2.control-label(for='inputRePassword') Password
+								.col-lg-10
+									input.form-control(type='password', placeholder='Password', id='inputRePassword', name='reg_repassword')
+
+							.form-group
+								.col-lg-10.col-lg-offset-2
+									a.btn.btn-default(href='/') Cancel
+									button.btn.btn-primary(type='submit') Register
+
+							- if (message.error)			
+								.alert.alert-dismissable.alert-danger
+									| #{message.reason}

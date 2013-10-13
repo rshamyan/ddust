@@ -74,6 +74,8 @@ class MongoUsersProvider : IUsersProvider
 				"regdate": Bson(BsonDate(Clock.currTime()))
 				]));
 		
+		logInfo("[Users]login %s successfully registered", login);
+		
 		return true;
 		
 	}

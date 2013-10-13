@@ -30,6 +30,14 @@ html
 						li
 							a(href='/contact') Contact
 
+					ul.nav.navbar-nav.navbar-right
+						li
+							a(href='/login') Sign in
+						li
+							a(href='/register') Registration
+						li
+							a(href='/profile') My Profile
+
 		block body
 
 		.container

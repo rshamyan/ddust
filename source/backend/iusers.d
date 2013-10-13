@@ -309,27 +309,27 @@ mixin template usersValidator()
 		
 	static bool isValidPassword(in string password)
 	{
-		return to!bool(match(password, r"[a-zA-Z0-9.\\-_]{3,20}"));
+		return to!bool(match(password, r"^[a-zA-Z0-9.\\-_]{3,20}"));
 	}
 	
 	static bool isValidEmail(in string email)
 	{
-		return to!bool(match(email, r"[a-z0-9.\\-_]{3,100}@[a-z0-9.\\-_]{3,100}\.[a-z]{2,4}"));
+		return to!bool(match(email, r"^[a-z0-9.\\-_]{3,100}@[a-z0-9.\\-_]{3,100}\.[a-z]{2,4}"));
 	}
 	
 	static bool isValidFirstname(in string firstname)
 	{
-		return to!bool(match(firstname, r"[a-zA-Z][a-zA-Z0-9.\\-_]{3,20}"));
+		return to!bool(match(firstname, r"^[a-zA-Z][a-zA-Z0-9.\\-_]{3,20}"));
 	}
 	
 	static bool isValidLastname(in string lastname)
 	{
-		return to!bool(match(lastname, r"[a-zA-Z][a-zA-Z0-9.\\-_]{3,20}"));
+		return to!bool(match(lastname, r"^[a-zA-Z][a-zA-Z0-9.\\-_]{3,20}"));
 	}
 	
 	static bool isValidUsername(in string username)
 	{
-		return to!bool(match(username, r"[a-zA-Z][a-zA-Z0-9.\\-_]{3,20}"));
+		return to!bool(match(username, r"^[a-zA-Z][a-zA-Z0-9.\\-_]{3,20}"));
 	}
 	
 	static bool isValidUserInfo(in Bson userInfo)

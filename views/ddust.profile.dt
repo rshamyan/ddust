@@ -1,0 +1,40 @@
+extends ddust.layout
+
+block body
+	.container
+		.row
+			.well
+				form.form-horizontal(action='/profile', method='POST', id='profileForm')
+					fieldset
+						legend #{profile_data.login}'s profile
+						.col-lg-3
+							img.img-rounded(src='#{profile_data.gravatarUrl}')
+						.col-lg-9
+							.form-group
+								label.col-lg-2.control-label(for='inputFirstname') Firstname
+								.col-lg-10
+									input.form-control(type='text', id='inputFirstname', name='profile_firstname', value='#{profile_data.firstname}')
+
+							.form-group
+								label.col-lg-2.control-label(for='inputLastname') Lastname
+								.col-lg-10
+									input.form-control(type='text', id='inputLastname', name='profile_lastname', value='#{profile_data.lastname}')
+
+							.form-group
+								label.col-lg-2.control-label(for='inputUsername') Username(public)
+								.col-lg-10
+									input.form-control(type='text', id='inputUsername', name='profile_username', value='#{profile_data.username}')
+
+							.form-group
+								label.col-lg-2.control-label(for='inputEmail') Email
+								.col-lg-10
+									input.form-control(type='text', id='inputEmail', name='profile_email', value='#{profile_data.email}')
+
+							.form-group
+								.col-lg-10.col-lg-offset-2
+									a.btn.btn-default(href='/') Cancel
+									button.btn.btn-primary(type='submit') Update
+
+							- if (message.error)			
+								.alert.alert-dismissable.alert-danger
+									| #{message.reason}
