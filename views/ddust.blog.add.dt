@@ -1,0 +1,35 @@
+extends ddust.layout
+
+block body
+	.container
+		.row
+			.well
+				form.form-horizontal(action='/blog/add/entry', method='POST', id='entryForm')
+					fieldset
+						legend New Blog Entry
+						.col-lg-12
+							.form-group
+								label.col-lg-2.control-label(for='inputTitle') Title
+								.col-lg-10
+									input.form-control(type='text', id='inputTitle', name='entry_title', value='#{entry.title}')
+
+							.form-group
+								label.col-lg-2.control-label(for='inputShort') Short Body
+								.col-lg-10
+									textarea.form-control(id='inputShort', name='entry_shortstr', style='height:200px;')
+										| #{entry.shortstr}
+
+							.form-group
+								label.col-lg-2.control-label(for='inputBody') Full Body
+								.col-lg-10
+									textarea.form-control(id='inputBody', name='entry_bodystr',style='height:200px;')
+										| #{entry.bodystr}
+
+							.form-group
+								.col-lg-10.col-lg-offset-2
+									a.btn.btn-default(href='/') Cancel
+									button.btn.btn-primary(type='submit') Create
+
+							- if (message.error)			
+								.alert.alert-dismissable.alert-danger
+									| #{message.reason}

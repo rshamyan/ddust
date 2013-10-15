@@ -7,16 +7,17 @@ block body
 			.col-lg-8
 				- foreach(doc; docs)
 					h1
-						a(href='/blog/#{doc.id}') #{doc.title}
+						a(href='/blog/entry/#{doc.id}') #{doc.title}
 					p.lead by
 						a(href='/user/#{doc.author.id}') #{doc.author.name}
 					hr
-					P
+					p
 						span.glyphicon.glyphicon-time
-						| Posted on #{doc.datestr}
+							| Posted on #{doc.datestr}
 					hr
-					p #{doc.shortstr}
-					a.btn.btn-primary(href='/blog/#{doc.id}')
+					p
+						|!=doc.shortstr
+					a.btn.btn-primary(href='/blog/entry/#{doc.id}')
 						| Read more
 						span.glyphicon.glyphicon-chevron-right
 					hr

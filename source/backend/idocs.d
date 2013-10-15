@@ -504,16 +504,16 @@ mixin template docsValidator()
 	{
 		if (doc.isNull)
 		{
-			throw new NullComment();
+			throw new NullDoc();
 		}
 
 		if (doc["_type"].isNull)
 		{
 			throw new DocsInvalidData("_type", null);
 		}
-		else if (getType(doc) != DocType.Comment)
+		else if (getType(doc) != DocType.BlogDocument)
 		{
-			throw new InvalidDocType(getType(doc), DocType.Comment);
+			throw new InvalidDocType(getType(doc), DocType.BlogDocument);
 		}
 
 		if (doc["body"].isNull)

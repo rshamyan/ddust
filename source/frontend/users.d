@@ -54,6 +54,44 @@ package struct User
 		return ret;
 	}
 	
+	static User fromLogin(string login, IUsersProvider usersProvider)
+	{
+		User ret;
+		
+		Bson res = usersProvider.queryUserInfo(login);
+		
+		foreach(string k, v; res)
+		{
+			if (k == "login") 
+			{
+				ret.login = v.get!string;
+			}
+			else if (k == "_id") 
+			{
+				auto id = v.get!BsonObjectID;
+				ret.id = id.toString();
+			}
+			else if (k == "username")
+			{
+				ret.username = v.get!string;
+			}
+			else if (k == "email")
+			{
+				ret.email = v.get!string;
+			}
+			else if (k == "firstname")
+			{
+				ret.firstname = v.get!string;
+			}
+			else if (k == "lastname")
+			{
+				ret.lastname = v.get!string;
+			}
+		}
+		
+		return ret;
+	}
+	
 	string name() @property
 	{
 		if ( username is null)
@@ -66,6 +104,76 @@ package struct User
 		}
 	}
 }
+
+package const char[] t_session = "
+	
+	import core.time:dur;
+	
+	enum TIMEOUT = 5;//mins
+	
+	bool isOnline(out string login)
+	{		
+		auto redirect = new Cookie(); 
+		redirect.value = req.fullURL.localURI;
+		res.cookies[\"redirect\"] = redirect;
+
+		auto session = req.session;
+		
+		if (session !is null)
+		{
+			auto logon_time = SysTime.fromISOExtString(session[\"logon_time\"]);
+			if ((Clock.currTime() - logon_time) > dur!\"minutes\"(TIMEOUT))
+			{
+				res.redirect(\"/login\");
+				return false;
+			}
+			else
+			{
+				login = session[\"login\"];
+				return true;
+			}
+		}
+		else
+		{
+			res.redirect(\"/login\");
+		}
+		
+		return false;
+	}
+
+	bool hasRedirect(out string addr)
+	{
+		try
+		{
+			addr = req.cookies.get(\"redirect\");
+			auto cookie = new Cookie();
+			cookie.value = \"/\";
+			
+			res.cookies[\"redirect\"]= cookie;
+			//logInfo(\"called\");
+            return true;
+        }
+        catch(Exception ex)
+        {
+        
+        }
+        return false;
+    }   
+	
+	void activate(string login)
+	{
+		if (req.session !is null)
+		{
+			res.terminateSession();
+		}
+		
+		auto session = res.startSession();
+		session[\"login\"] = login;
+		session[\"logon_time\"] = Clock.currTime().toISOExtString();
+		session[\"ip\"]= req.host();
+	}
+	
+";
 
 package mixin template t_login()
 {
@@ -92,12 +200,14 @@ package mixin template t_login()
 	
 	void login(HTTPServerRequest req, HTTPServerResponse res)
 	{
-		res.renderCompat!("ddust.login.dt", HTTPServerRequest,"req", MSG, "message")(req, MSG(false,""));
+		res.renderCompat!("ddust.login.dt", HTTPServerRequest,"req", MSG, "message")(req, MSG());
 	}
 	
 	void postLogin(HTTPServerRequest req, HTTPServerResponse res)
 	{
-		LoginData loginData;
+		mixin(t_session);
+		
+		LoginData loginData;		
 		
 		loadFormData(req, loginData, "auth");
 		
@@ -107,16 +217,17 @@ package mixin template t_login()
 			
 			if (msg)
 			{
-				if (req.session !is null)
+				string addr;
+				activate(loginData.login);
+				if (hasRedirect(addr))
 				{
-					res.terminateSession();
+					//logInfo("Redirect to %s",addr);
+					res.redirect(addr);
 				}
-				auto session = res.startSession();
-				session["login"] = loginData.login;
-				session["logon_time"] = Clock.currTime().toISOExtString();
-				session["ip"]= req.host();
-				res.redirect("/");
-
+				else
+				{
+					res.redirect("/");
+				}
 			} 
 			else
 			{
@@ -135,7 +246,6 @@ package mixin template t_login()
 
 package mixin template t_register()
 {
-	// registration
 	enum REG_DATA_STATUS:string
 	{
 		OK = "Login and Password is OK",
@@ -221,7 +331,6 @@ package mixin template t_register()
 
 package mixin template t_profile()
 {
-	// profile page
 	enum PROFILE_DATA_STATUS:string
 	{
 		OK = "OK",
@@ -232,7 +341,7 @@ package mixin template t_profile()
 		INVALID_USERNAME = "Username is incorrect"
 	}
 
-	struct ProfileData //странно, если запихнуть в шаблон t_profile,то ловим ошибку доступа в diet.d:99
+	struct ProfileData
 	{
 		mixin usersValidator;
 		
@@ -329,36 +438,15 @@ package mixin template t_profile()
 		
 	}
 	
-	enum LOGON_TIMEOUT = 5;//min
-	
 	void profile(HTTPServerRequest req, HTTPServerResponse res)
 	{
-		Bson parseCheckSession(ref Session session)
-		{
-			if (session["login"] !is null)
-			{
-				auto logon_time = SysTime.fromISOExtString(session["logon_time"]);
-				
-				if ((Clock.currTime - logon_time) > minutes(LOGON_TIMEOUT))
-				{
-					res.redirect("/");
-				}
-				else
-				{
-					return usersProvider.queryUserInfo(session["login"]);
-				}
-			}
-			
-			return Bson.emptyObject(); 
-		}
+		mixin(t_session);
 		
-		if (req.session is null)
+		string login;
+		
+		if (isOnline(login))
 		{
-			res.redirect("/login");
-		}
-		else
-		{
-			auto userInfo = parseCheckSession(req.session);
+			auto userInfo = usersProvider.queryUserInfo(login);
 			
 			ProfileData data = ProfileData.fromBson(userInfo);
 			
@@ -370,18 +458,16 @@ package mixin template t_profile()
 	
 	void postProfile(HTTPServerRequest req, HTTPServerResponse res)
 	{
+		mixin(t_session);
+		
 		ProfileData  profileData;
 		
 		loadFormData(req, profileData, "profile");
 		
-		if (req.session is null)
+		string login;
+		if (!isOnline(profileData.login))
 		{
-			res.redirect("/");
 			return;
-		}
-		else
-		{
-			profileData.login = req.session["login"];
 		}
 		
 		if (profileData.status != PROFILE_DATA_STATUS.OK)

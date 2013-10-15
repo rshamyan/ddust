@@ -25,6 +25,11 @@ mixin template dateconv()
 {
 	static if (is(typeof(date): SysTime))
 	{
+		string datestr(string format) @property
+		{
+			return date.toSimpleString();
+		}
+		
 		string datestr() @property
 		{
 			return date.toSimpleString();
@@ -58,3 +63,4 @@ string md5str(string str)
 	
 	return toHexString(hash).idup;
 }
+

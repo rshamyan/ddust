@@ -7,12 +7,16 @@ mixin template blog()
 	import std.functional;
 	import vibe.d;
 	import frontend.docs;
+	import frontend.users;
 	import backend.idocs;
+	
 	
 	void setupBlog()
 	{
 		router.get("/blog", &blog);
-		router.get("/blog/*", &blogSingle);
+		router.get("/blog/entry/*", &blogSingle);
+		router.get("/blog/add/entry", &addBlogEntry);
+		router.post("/blog/add/entry", &postAddBlogEntry);
 	}
 	
 	void blog(HTTPServerRequest req, HTTPServerResponse res)
@@ -23,7 +27,7 @@ mixin template blog()
 		foreach(each; docsProvider.queryBlogDocuments(-10))
 		{
 			BlogDocument doc = BlogDocument.fromBson(each);
-			doc.fillAuthorInfo(usersProvider);
+			doc.fillAuthorInfo(doc.author.id, usersProvider);
 			
 			docs ~= doc;
 		}
@@ -31,16 +35,11 @@ mixin template blog()
 		res.renderCompat!("ddust.blog.dt", HTTPServerRequest, "req", BlogDocument[], "docs")(req, docs);
 	}
 	
-	public static void getMsg(out string msg, Exception ex)
-	{
-		msg = ex.msg;
-	}
-	
 	void blogSingle(HTTPServerRequest req, HTTPServerResponse res)
 	{		
 		string path = req.fullURL().toString();
 		
-		auto m = split(path, r"/blog/");
+		auto m = split(path, r"/blog/entry/");
 		
 		if (m.length < 2)
 		{
@@ -70,9 +69,7 @@ mixin template blog()
 				res.statusCode = HTTPStatus.NotFound;
 			}
 			else throw ex;
-			//res.statusPhrase = ex.msg;
 			error = true;
-			//throw new Exception(ex.msg);
 		}
 		
 		Bson bdoc = docsProvider.queryBlogDocument(id, &onError);
@@ -81,21 +78,102 @@ mixin template blog()
 		
 		BlogDocument doc = BlogDocument.fromBson(bdoc);
 		
-		doc.fillAuthorInfo(usersProvider);
+		doc.fillAuthorInfo(doc.author.id, usersProvider);
 		
 		Comment[] coms = new Comment[0];
 		
 		foreach(each; docsProvider.queryComments(BsonObjectID.fromString(m[1]), 10))
 		{
 			Comment com = Comment.fromBson(each);
-			com.fillAuthorInfo(usersProvider);
+			com.fillAuthorInfo(com.author.id, usersProvider);
 			
 			coms ~= com;
 		}
 		
 		res.renderCompat!("ddust.blog.single.dt", HTTPServerRequest, "req", BlogDocument, "doc", Comment[],"coms")
 			(req, doc, coms);
+				
+	}
+	
+	void addBlogEntry(HTTPServerRequest req, HTTPServerResponse res)
+	{
+		mixin(t_session);
+		
+		string login;
+		if (isOnline(login))
+		{ 
+			res.renderCompat!("ddust.blog.add.dt", HTTPServerRequest, "req", BlogEntry, "entry", MSG, "message")(
+				req, BlogEntry(), MSG());
+		}
+	}
+	
+	struct BlogEntry
+	{
+		string title;
+		string bodystr;
+		string shortstr;
+		
+		BlogDocument toBlogDocument()
+		{
+			BlogDocument doc;
+			
+			doc.title = title;
+			
+			doc.bodystr = bodystr;
+			
+			doc.shortstr = shortstr;
+			
+			doc.date = Clock.currTime();
+			
+			return doc;
+		}
+		
+		mixin doc!BlogEntry;
+	}
+	
+	void postAddBlogEntry(HTTPServerRequest req, HTTPServerResponse res)
+	{
+		mixin(t_session);
+		
+		string login;
+		if (!isOnline(login))
+		{ 
+			return;
+		}
+		
+		BlogEntry entry;
+		
+		loadFormData(req, entry, "entry");
+		
+		string reason;
+		
+		void onError(Exception ex)
+		{
+			reason = ex.msg;
+		}
 		
 		
+		if (!entry.isValid(reason))
+		{
+			res.renderCompat!("ddust.blog.add.dt", HTTPServerRequest, "req", BlogEntry, "entry", MSG, "message")(
+				req, entry, MSG(true,reason));
+		}
+		else 
+		{
+			BlogDocument doc = entry.toBlogDocument();
+		
+			doc.fillAuthorInfoFromLogin(login, usersProvider);
+			
+			if(docsProvider.addBlogDocument(doc.toBson(doc), &onError))
+			{
+				res.redirect("/blog");
+			}
+			else
+			{
+				res.renderCompat!("ddust.blog.add.dt", HTTPServerRequest, "req", BlogEntry, "entry", MSG, "message")(
+					req, entry, MSG(true, reason));
+			
+			}
+		}
 	}
 }
