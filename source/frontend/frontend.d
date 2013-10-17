@@ -34,7 +34,7 @@ class FrontEnd
 		settings = new HTTPServerSettings;
 		settings.sessionStore = new MemorySessionStore;
 		settings.bindAddresses = ["127.0.0.1"];
-		settings.port = 80;
+		settings.port = 8888;
 	}
 	
 	private void init()

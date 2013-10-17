@@ -8,9 +8,13 @@ import backend.idocs;
 import backend.iusers;
 import frontend.frontend;
 
+import std.stdio;
+
 void main(string[] args)
 {
 	new FrontEnd();
 	
 	runEventLoop();
+	
+	lowerPrivileges();
 }

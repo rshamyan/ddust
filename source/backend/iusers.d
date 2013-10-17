@@ -196,7 +196,7 @@ interface IUsersProvider: Immortal
 			onError(ex);
 		}
 		
-		return Bson.emptyObject;
+		return Bson.EmptyObject;
 	}
 	
 	protected Bson queryUserInfoImpl(string login);
@@ -215,7 +215,7 @@ interface IUsersProvider: Immortal
 			onError(ex);
 		}
 		
-		return Bson.emptyObject;
+		return Bson.EmptyObject;
 	}
 	
 	protected Bson queryUserInfoFromIDImpl(BID id);

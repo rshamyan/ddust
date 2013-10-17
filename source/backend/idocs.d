@@ -135,7 +135,7 @@ interface IDocsProvider:Immortal
 			onError(ex);
 		}
 		
-		return Bson.emptyObject;
+		return Bson.EmptyObject;
 	}
 	
 	protected Bson queryDocumentImpl(BID id);
@@ -156,7 +156,7 @@ interface IDocsProvider:Immortal
 			onError(ex);
 		}
 		
-		return Bson.emptyObject;
+		return Bson.EmptyObject;
 	}
 	
 	protected Bson queryCommentImpl(BID id);
@@ -361,7 +361,7 @@ interface IDocsProvider:Immortal
 			onError(ex);
 		}
 		
-		return Bson.emptyObject;
+		return Bson.EmptyObject;
 	}
 	
 	protected Bson queryBlogDocumentImpl(BID id);

@@ -105,7 +105,7 @@ package struct User
 	}
 }
 
-package const char[] t_session = "
+package enum t_session = "
 	
 	import core.time:dur;
 	
@@ -115,6 +115,7 @@ package const char[] t_session = "
 	{		
 		auto redirect = new Cookie(); 
 		redirect.value = req.fullURL.localURI;
+		redirect.maxAge = 10;
 		res.cookies[\"redirect\"] = redirect;
 
 		auto session = req.session;
@@ -146,11 +147,7 @@ package const char[] t_session = "
 		try
 		{
 			addr = req.cookies.get(\"redirect\");
-			auto cookie = new Cookie();
-			cookie.value = \"/\";
-			
-			res.cookies[\"redirect\"]= cookie;
-			//logInfo(\"called\");
+			res.setCookie(\"redirect\", null); //TODO: Why no effect?
             return true;
         }
         catch(Exception ex)
@@ -420,7 +417,7 @@ package mixin template t_profile()
 		
 		Bson toBson()
 		{
-			Bson bson = Bson.emptyObject();
+			Bson bson = Bson.EmptyObject();
 			
 			bson["login"] = login;
 			
