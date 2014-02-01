@@ -11,7 +11,7 @@ Requirements
 Compilation
 -----
 ```
-dub duild
+dub build
 ```
 Next, just run your binary
 ```

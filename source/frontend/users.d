@@ -112,30 +112,34 @@ package enum t_session = "
 	enum TIMEOUT = 5;//mins
 	
 	bool isOnline(out string login)
-	{		
-		auto redirect = new Cookie(); 
-		redirect.value = req.fullURL.localURI;
-		redirect.maxAge = 10;
-		res.cookies[\"redirect\"] = redirect;
-
-		auto session = req.session;
-		
-		if (session !is null)
+	{
+		void setRedirect(string addr)
 		{
-			auto logon_time = SysTime.fromISOExtString(session[\"logon_time\"]);
+			auto redirect = new Cookie(); 
+			redirect.value = addr;
+			redirect.maxAge = 10;
+			res.cookies[\"redirect\"] = redirect;
+			return;
+		}
+
+		if (req.session.id !is null)
+		{
+			auto logon_time = SysTime.fromISOExtString(req.session[\"logon_time\"]);
 			if ((Clock.currTime() - logon_time) > dur!\"minutes\"(TIMEOUT))
 			{
+				setRedirect(req.fullURL.localURI);
 				res.redirect(\"/login\");
 				return false;
 			}
 			else
 			{
-				login = session[\"login\"];
+				login = req.session[\"login\"];
 				return true;
 			}
 		}
 		else
 		{
+			setRedirect(req.fullURL.localURI);
 			res.redirect(\"/login\");
 		}
 		
@@ -148,6 +152,7 @@ package enum t_session = "
 		{
 			addr = req.cookies.get(\"redirect\");
 			res.setCookie(\"redirect\", null); //TODO: Why no effect?
+			if (addr is null) return false;
             return true;
         }
         catch(Exception ex)
@@ -159,7 +164,8 @@ package enum t_session = "
 	
 	void activate(string login)
 	{
-		if (req.session !is null)
+
+		if (req.session.id !is null)
 		{
 			res.terminateSession();
 		}
@@ -218,7 +224,6 @@ package mixin template t_login()
 				activate(loginData.login);
 				if (hasRedirect(addr))
 				{
-					//logInfo("Redirect to %s",addr);
 					res.redirect(addr);
 				}
 				else
@@ -251,7 +256,7 @@ package mixin template t_register()
 		
 		INVALID_LOGIN = "Login is invalid",
 		
-		DONOT_MATCH_PASSWORD = "Passwords don't match",
+		DONOT_MATCH_PASSWORDS = "Passwords don't match",
 		
 		USER_ALREADY_REGISTERED = "Login already registered"
 	}
@@ -270,7 +275,7 @@ package mixin template t_register()
 		{
 			if (!isValidLogin(login)) return REG_DATA_STATUS.INVALID_LOGIN;
 			
-			if (password != repassword) return REG_DATA_STATUS.DONOT_MATCH_PASSWORD;
+			if (password != repassword) return REG_DATA_STATUS.DONOT_MATCH_PASSWORDS;
 			
 			if (!isValidPassword(password)) return REG_DATA_STATUS.INVALID_PASSWORD;
 			

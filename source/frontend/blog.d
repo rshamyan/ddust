@@ -152,7 +152,6 @@ mixin template blog()
 			reason = ex.msg;
 		}
 		
-		
 		if (!entry.isValid(reason))
 		{
 			res.renderCompat!("ddust.blog.add.dt", HTTPServerRequest, "req", BlogEntry, "entry", MSG, "message")(
