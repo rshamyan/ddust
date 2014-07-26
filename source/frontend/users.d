@@ -93,25 +93,23 @@ package enum t_session = "
 	import core.time:dur;
 	
 	enum TIMEOUT = 5;//mins
+
+	void setRedirect(string addr)
+	{
+		auto redirect = new Cookie(); 
+		redirect.value = addr;
+		redirect.maxAge = 10;
+		res.cookies[\"redirect\"] = redirect;
+	}
 	
 	bool isOnline(out string login)
 	{
-		void setRedirect(string addr)
-		{
-			auto redirect = new Cookie(); 
-			redirect.value = addr;
-			redirect.maxAge = 10;
-			res.cookies[\"redirect\"] = redirect;
-			return;
-		}
 
 		if (req.session.id !is null)
 		{
 			auto logon_time = SysTime.fromISOExtString(req.session[\"logon_time\"]);
 			if ((Clock.currTime() - logon_time) > dur!\"minutes\"(TIMEOUT))
 			{
-				setRedirect(req.fullURL.localURI);
-				res.redirect(\"/login\");
 				return false;
 			}
 			else
@@ -119,11 +117,6 @@ package enum t_session = "
 				login = req.session[\"login\"];
 				return true;
 			}
-		}
-		else
-		{
-			setRedirect(req.fullURL.localURI);
-			res.redirect(\"/login\");
 		}
 		
 		return false;
@@ -184,11 +177,13 @@ package mixin template t_login()
 		}
 	}
 	
+	@GA(USER_ROLE.init, "/login")
 	void login(HTTPServerRequest req, HTTPServerResponse res)
 	{
 		res.renderCompat!("ddust.login.dt", HTTPServerRequest,"req", MSG, "message")(req, MSG());
 	}
 	
+	@GA(USER_ROLE.init, "/login")
 	void postLogin(HTTPServerRequest req, HTTPServerResponse res)
 	{
 		mixin(t_session);
@@ -267,11 +262,13 @@ package mixin template t_register()
 				
 	}
 	
+	@GA(USER_ROLE.init, "/register")
 	void register(HTTPServerRequest req, HTTPServerResponse res)
 	{
 		res.renderCompat!("ddust.register.dt", HTTPServerRequest, "req", MSG, "message")(req, MSG(false, ""));
 	}
 	
+	@GA(USER_ROLE.init, "/register")
 	void postRegister(HTTPServerRequest req, HTTPServerResponse res)
 	{
 		RegisterData regData;
@@ -423,6 +420,7 @@ package mixin template t_profile()
 		
 	}
 	
+	@GA(USER_ROLE.init, "/profile")
 	void profile(HTTPServerRequest req, HTTPServerResponse res)
 	{
 		mixin(t_session);
@@ -438,9 +436,15 @@ package mixin template t_profile()
 			res.renderCompat!("ddust.profile.dt", HTTPServerRequest, "req", ProfileData, 
 				"profile_data", MSG, "message")(req, data, MSG());
 		}
+		else
+		{
+			setRedirect(req.fullURL.localURI);
+			res.redirect("/login");
+		}
 		
 	}
 	
+	@GA(USER_ROLE.init, "/profile")
 	void postProfile(HTTPServerRequest req, HTTPServerResponse res)
 	{
 		mixin(t_session);
@@ -494,16 +498,4 @@ package mixin template usersPages()
 	mixin t_login;
 	mixin t_profile;
 	mixin t_register;
-	
-	void setupUsersPages()
-	{
-		router.get("/login", &login);
-		router.post("/login", &postLogin);
-		
-		router.get("/register", &register);
-		router.post("/register", &postRegister);
-		
-		router.get("/profile", &profile);
-		router.post("/profile", &postProfile);
-	}
 }

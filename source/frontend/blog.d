@@ -6,19 +6,13 @@ mixin template blog()
 	import std.regex;
 	import std.functional;
 	import vibe.d;
+	import frontend.permission;
 	import frontend.docs;
 	import frontend.users;
 	import backend.idocs;
+	import backend.iusers;
 	
-	
-	void setupBlog()
-	{
-		router.get("/blog", &blog);
-		router.get("/blog/entry/*", &blogSingle);
-		router.get("/blog/add/entry", &addBlogEntry);
-		router.post("/blog/add/entry", &postAddBlogEntry);
-	}
-	
+	@GA(USER_ROLE.init, "/blog")
 	void blog(HTTPServerRequest req, HTTPServerResponse res)
 	{
 		
@@ -35,6 +29,7 @@ mixin template blog()
 		res.renderCompat!("ddust.blog.dt", HTTPServerRequest, "req", BlogDocument[], "docs")(req, docs);
 	}
 	
+	@GA(USER_ROLE.init, "/blog/entry/*")
 	void blogSingle(HTTPServerRequest req, HTTPServerResponse res)
 	{		
 		string path = req.fullURL().toString();
@@ -95,6 +90,7 @@ mixin template blog()
 				
 	}
 	
+	@GA(USER_ROLE.USER, "/blog/add/entry")
 	void addBlogEntry(HTTPServerRequest req, HTTPServerResponse res)
 	{
 		mixin(t_session);
@@ -131,6 +127,7 @@ mixin template blog()
 		mixin doc!BlogEntry;
 	}
 	
+	@GA(USER_ROLE.USER, "/blog/add/entry")
 	void postAddBlogEntry(HTTPServerRequest req, HTTPServerResponse res)
 	{
 		mixin(t_session);

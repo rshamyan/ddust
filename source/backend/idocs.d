@@ -62,7 +62,6 @@ interface IDocsProvider
 	/**
 	* remove Document
 	*/
-	@UserRole(USER_ROLE.EDITOR)
 	final bool removeDocument(BID id, Proc onError = defaultErrorProc)
 	{
 		try

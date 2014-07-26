@@ -10,6 +10,7 @@ import backend.mongo.users;
 import frontend.blog;
 import frontend.error;
 import frontend.users;
+import frontend.permission;
 
 
 class FrontEnd
@@ -33,13 +34,14 @@ class FrontEnd
 	{
 		settings = new HTTPServerSettings;
 		settings.sessionStore = new MemorySessionStore;
-		settings.bindAddresses = ["127.0.0.1"];
-		settings.port = 8888;
+		settings.bindAddresses = ["127.0.0.1","192.168.1.100"];
+		settings.port = 80;
 	}
 	
 	private void init()
 	{
 		setupRouter();
+		
 		setupSettings();
 		
 		setupModules();
@@ -47,14 +49,14 @@ class FrontEnd
 		listenHTTP(settings, router);
 	}
 	
+	mixin t_permission!FrontEnd;
 	mixin blog;
 	mixin errorPage;
 	mixin usersPages;
 	private void setupModules()
 	{
-		setupBlog();
 		setupErrorPage();
-		setupUsersPages();
+		setupModulesWithAccess();
 	}
 	
 	this()
@@ -64,6 +66,6 @@ class FrontEnd
 		
 		init();
 	}
-}
 
+}
 

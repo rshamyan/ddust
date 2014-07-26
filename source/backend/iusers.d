@@ -13,12 +13,12 @@ import vibe.d;
 import util;
 
 /******************
-* READ_ONLY - can read posts <br>
-* USER - can read and comment posts <br>
-* WRITER - can read, comment and write posts <br>
-* EDITOR - can read, comment, write and publish posts <br>
-* MODERATOR - EDITOR that can ban/punish upper users <br>
-* ADMIN - MODERATOR that can ban/punish MODERATORS <br>
+* READ_ONLY - can read posts <br/>
+* USER - can read and comment posts <br/>
+* WRITER - can read, comment and write posts <br/>
+* EDITOR - can read, comment, write and publish posts <br/>
+* MODERATOR - EDITOR that can ban/punish upper users <br/>
+* ADMIN - MODERATOR that can ban/punish MODERATORS <br/>
 * SUPER_ADMIN - can everything
 */
 
@@ -40,10 +40,10 @@ enum USER_ROLE:int
 	
 	SUPER_ADMIN = 30,
 	
-	BANNED = 666
+	BANNED = -666
 }
 
-package struct UserRole
+struct UserRole
 {
 	USER_ROLE role;
 }

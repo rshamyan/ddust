@@ -2,6 +2,7 @@ module util;
 
 import vibe.d;
 import std.digest.md;
+import std.traits;
 
 alias void function (Exception) Processor;
 
@@ -63,4 +64,5 @@ string md5str(string str)
 	
 	return toHexString(hash).idup;
 }
+
 
