@@ -174,7 +174,7 @@ class MongoUsersProvider : IUsersProvider
 		MongoCollection coll = db.getCollection(USERS_COLLECTION);
 		
 		auto res = coll.find(
-			Bson(["$query": Bson.EmptyObject, 
+			Bson(["$query": Bson.emptyObject, 
 				"$orderby":Bson(["login" : Bson(order)]) ]),
 			["_id":1, "login":1],
 			QueryFlags.None, 0, count);

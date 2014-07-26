@@ -6,10 +6,60 @@ import std.ascii;
 import std.array;
 import std.random;
 import std.regex;
+import std.traits;
 
 import vibe.d;
 
 import util;
+
+/******************
+* READ_ONLY - can read posts <br>
+* USER - can read and comment posts <br>
+* WRITER - can read, comment and write posts <br>
+* EDITOR - can read, comment, write and publish posts <br>
+* MODERATOR - EDITOR that can ban/punish upper users <br>
+* ADMIN - MODERATOR that can ban/punish MODERATORS <br>
+* SUPER_ADMIN - can everything
+*/
+
+enum USER_ROLE:int
+{
+	GUEST = -1,
+	
+	READ_ONLY = 0,
+	
+	USER = 5,
+	
+	WRITER = 10,
+	
+	EDITOR = 15,
+	
+	MODERATOR = 20,
+	
+	ADMIN = 25,
+	
+	SUPER_ADMIN = 30,
+	
+	BANNED = 666
+}
+
+package struct UserRole
+{
+	USER_ROLE role;
+}
+
+USER_ROLE getRole(alias func)()
+{
+	foreach(attr; __traits(getAttributes, func))
+	{		
+		if( is(typeof(attr) == UserRole))
+		{
+			return attr.role;
+		}
+	}
+
+	return USER_ROLE.GUEST;
+}
 
 /**
 * Interface for module users
@@ -17,7 +67,7 @@ import util;
 * Dependecies
 * 	vibe.d
 */
-interface IUsersProvider: Immortal
+interface IUsersProvider
 {
 	mixin usersValidator;
 	
@@ -103,7 +153,6 @@ interface IUsersProvider: Immortal
 	/// check, is login registered
 	final bool isLoginRegistered(alias onError = defaultErrorProcessor)(string login)
 	{
-		mixin(procCheck);
 		try
 		{
 			return isLoginRegisteredImpl(login);
@@ -196,7 +245,7 @@ interface IUsersProvider: Immortal
 			onError(ex);
 		}
 		
-		return Bson.EmptyObject;
+		return Bson.emptyObject;
 	}
 	
 	protected Bson queryUserInfoImpl(string login);
@@ -215,7 +264,7 @@ interface IUsersProvider: Immortal
 			onError(ex);
 		}
 		
-		return Bson.EmptyObject;
+		return Bson.emptyObject;
 	}
 	
 	protected Bson queryUserInfoFromIDImpl(BID id);
@@ -332,6 +381,19 @@ mixin template usersValidator()
 		return to!bool(match(username, r"^[a-zA-Z][a-zA-Z0-9.\\-_]{3,20}"));
 	}
 	
+	static bool isValidRole(in int role)
+	{
+		try
+		{
+			USER_ROLE t = cast(USER_ROLE) role;
+			return true;
+		}
+		catch (Exception ex)
+		{
+			return false;
+		}
+	}
+	
 	static bool isValidUserInfo(in Bson userInfo)
 	{
 		Json json = userInfo.toJson();
@@ -361,6 +423,11 @@ mixin template usersValidator()
 			else if ((k == "username")&&(!isValidUsername(v.to!string)))
 			{
 				throw new UsersInvalidData(k, v.to!string);
+			}
+			
+			else if ((k == "role")&&(!isValidRole(v.to!int)))
+			{
+				throw new UsersInvalidRole(k, v.to!int);
 			}
 		}
 		
@@ -406,5 +473,13 @@ class UsersInvalidQueryCount: UsersException
 	this(int i)
 	{
 		super("[Users]Invalid query count %d", i);
+	}
+}
+
+class UsersInvalidRole : UsersException
+{
+	this(T)(string field, T value)
+	{
+		super("[Users]Invalid %s = %s", field, value);
 	}
 }

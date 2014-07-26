@@ -19,48 +19,13 @@ package struct User
 	
 	string lastname;
 	
-	static User fromID(string id, IUsersProvider usersProvider)
-	{
-		User ret;
-		
-		ret.id = id; // DEBUG ME
-		
-		Bson res = usersProvider.queryUserInfoFromID(BsonObjectID.fromString(id));
-		
-		foreach(string k, v; res)
-		{
-			if (k == "login") 
-			{
-				ret.login = v.get!string;
-			}
-			else if (k == "username")
-			{
-				ret.username = v.get!string;
-			}
-			else if (k == "email")
-			{
-				ret.email = v.get!string;
-			}
-			else if (k == "firstname")
-			{
-				ret.firstname = v.get!string;
-			}
-			else if (k == "lastname")
-			{
-				ret.lastname = v.get!string;
-			}
-		}
-		
-		return ret;
-	}
+	USER_ROLE role;
 	
-	static User fromLogin(string login, IUsersProvider usersProvider)
+	static User fromBson(Bson bson)
 	{
 		User ret;
 		
-		Bson res = usersProvider.queryUserInfo(login);
-		
-		foreach(string k, v; res)
+		foreach(string k, v; bson)
 		{
 			if (k == "login") 
 			{
@@ -87,9 +52,27 @@ package struct User
 			{
 				ret.lastname = v.get!string;
 			}
+			else if (k == "role")
+			{
+				ret.role = cast(USER_ROLE) v.get!int;
+			}
 		}
 		
 		return ret;
+	}
+	
+	static User fromID(string id, IUsersProvider usersProvider)
+	{
+		Bson res = usersProvider.queryUserInfoFromID(BsonObjectID.fromString(id));
+
+		return fromBson(res);
+	}
+	
+	static User fromLogin(string login, IUsersProvider usersProvider)
+	{
+		Bson res = usersProvider.queryUserInfo(login);
+		
+		return fromBson(res);
 	}
 	
 	string name() @property
@@ -422,7 +405,7 @@ package mixin template t_profile()
 		
 		Bson toBson()
 		{
-			Bson bson = Bson.EmptyObject();
+			Bson bson = Bson.emptyObject();
 			
 			bson["login"] = login;
 			

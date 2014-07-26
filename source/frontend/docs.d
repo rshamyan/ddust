@@ -82,7 +82,7 @@ package mixin template doc(T)
 	
 	Bson toBson(in T doc)
 	{
-		Bson bson = Bson.EmptyObject;
+		Bson bson = Bson.emptyObject;
 		static if (is(typeof(doc.title):string))
 		{
 			bson["title"] = Bson(doc.title);

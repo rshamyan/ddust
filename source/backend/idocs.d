@@ -8,6 +8,8 @@ import vibe.d;
 
 import util;
 
+import backend.iusers;
+
 enum DocType: int
 {
 	Undefined = 0x00,
@@ -29,7 +31,7 @@ enum DocType: int
 	ForumReply = 0x08
 }
 
-interface IDocsProvider:Immortal
+interface IDocsProvider
 {
 	mixin docsValidator;
 	
@@ -60,6 +62,7 @@ interface IDocsProvider:Immortal
 	/**
 	* remove Document
 	*/
+	@UserRole(USER_ROLE.EDITOR)
 	final bool removeDocument(BID id, Proc onError = defaultErrorProc)
 	{
 		try
@@ -81,21 +84,21 @@ interface IDocsProvider:Immortal
 	*/
 	final bool addComment(BID docId, in Bson comment, Proc onError = defaultErrorProc)
 	{
-			try
+		try
+		{
+			if (!isValidComment(comment))
 			{
-				if (!isValidComment(comment))
-				{
-					return false;
-				}
-				
-				return addCommentImpl(docId, comment);
-			}
-			catch(Exception ex)
-			{
-				onError(ex);
+				return false;
 			}
 			
-			return false;
+			return addCommentImpl(docId, comment);
+		}
+		catch(Exception ex)
+		{
+			onError(ex);
+		}
+		
+		return false;
 	}
 	
 	protected bool addCommentImpl(BID docId, in Bson comment);
@@ -135,7 +138,7 @@ interface IDocsProvider:Immortal
 			onError(ex);
 		}
 		
-		return Bson.EmptyObject;
+		return Bson.emptyObject;
 	}
 	
 	protected Bson queryDocumentImpl(BID id);
@@ -156,7 +159,7 @@ interface IDocsProvider:Immortal
 			onError(ex);
 		}
 		
-		return Bson.EmptyObject;
+		return Bson.emptyObject;
 	}
 	
 	protected Bson queryCommentImpl(BID id);
@@ -361,7 +364,7 @@ interface IDocsProvider:Immortal
 			onError(ex);
 		}
 		
-		return Bson.EmptyObject;
+		return Bson.emptyObject;
 	}
 	
 	protected Bson queryBlogDocumentImpl(BID id);

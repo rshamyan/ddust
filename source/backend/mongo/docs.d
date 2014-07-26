@@ -78,7 +78,7 @@ public class MongoDocsProvider : IDocsProvider
 		
 		MongoCollection coll = db.getCollection(DOCS_COLLECTION);
 		
-		Bson req = Bson.EmptyObject;
+		Bson req = Bson.emptyObject;
 		
 		foreach(string k,v; comment) 
 		{
@@ -137,7 +137,7 @@ public class MongoDocsProvider : IDocsProvider
 		auto res = coll.find(
 			Bson(["$query": Bson(["_type":Bson(cast(int)type)]), 
 				"$orderby":Bson(["date" : Bson(order)]) ]),
-			Bson.EmptyObject,
+			Bson.emptyObject,
 			QueryFlags.None, 0, count);
 		
 		auto ret = new Bson[0];
@@ -190,7 +190,7 @@ public class MongoDocsProvider : IDocsProvider
 		auto res = coll.find(
 			Bson(["$query": Bson(["_type":Bson(cast(int)DocType.Comment), "_ref": Bson(id)]), 
 				"$orderby":Bson(["date" : Bson(order)]) ]),
-			Bson.EmptyObject,
+			Bson.emptyObject,
 			QueryFlags.None, 0, count);
 		
 		auto ret = new Bson[0];
@@ -282,7 +282,7 @@ public class MongoDocsProvider : IDocsProvider
 		auto res = coll.find(
 			Bson(["$query": Bson(["_type":Bson(cast(int)DocType.BlogDocument), "_ref":Bson(catId)]), 
 				"$orderby":Bson(["date" : Bson(order)]) ]),
-			Bson.EmptyObject,
+			Bson.emptyObject,
 			QueryFlags.None, 0, count);
 		
 		auto ret = new Bson[0];

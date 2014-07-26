@@ -4,3 +4,5 @@ libeay32.dll
 libevent.dll
 ssleay32.dll
 ddust.exe
+/.dub/
+/ddtEclipse/
