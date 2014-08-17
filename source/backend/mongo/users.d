@@ -71,7 +71,8 @@ class MongoUsersProvider : IUsersProvider
 				"login":Bson(login), 
 				"passhash": Bson(gened.hash), 
 				"salt": Bson(gened.salt), 
-				"regdate": Bson(BsonDate(Clock.currTime()))
+				"regdate": Bson(BsonDate(Clock.currTime())),
+				"role": Bson(USER_ROLE.init)
 				]));
 		
 		logInfo("[Users]login %s successfully registered", login);

@@ -20,8 +20,10 @@ mixin template blog()
 		
 		foreach(each; docsProvider.queryBlogDocuments(-10))
 		{
-			BlogDocument doc = BlogDocument.fromBson(each);
-			doc.fillAuthorInfo(doc.author.id, usersProvider);
+			BlogDocument doc = fromBson!BlogDocument(each);
+			std.stdio.writeln(each);
+			std.stdio.writeln(doc);
+			doc.fillAuthorInfo(doc.author_id, usersProvider);
 			
 			docs ~= doc;
 		}
@@ -71,7 +73,7 @@ mixin template blog()
 		
 		if (error) return;
 		
-		BlogDocument doc = BlogDocument.fromBson(bdoc);
+		BlogDocument doc = fromBson!BlogDocument(bdoc);
 		
 		doc.fillAuthorInfo(doc.author.id, usersProvider);
 		
@@ -79,7 +81,7 @@ mixin template blog()
 		
 		foreach(each; docsProvider.queryComments(BsonObjectID.fromString(m[1]), 10))
 		{
-			Comment com = Comment.fromBson(each);
+			Comment com = fromBson!Comment(each);
 			com.fillAuthorInfo(com.author.id, usersProvider);
 			
 			coms ~= com;
@@ -119,12 +121,12 @@ mixin template blog()
 			
 			doc.shortstr = shortstr;
 			
-			doc.date = Clock.currTime();
+			doc.date = Clock.currStdTime;
 			
 			return doc;
 		}
 		
-		mixin doc!BlogEntry;
+		mixin docValidator!BlogEntry;
 	}
 	
 	@GA(USER_ROLE.USER, "/blog/add/entry")
@@ -160,7 +162,7 @@ mixin template blog()
 		
 			doc.fillAuthorInfoFromLogin(login, usersProvider);
 			
-			if(docsProvider.addBlogDocument(doc.toBson(doc), &onError))
+			if(docsProvider.addBlogDocument(toBson(doc), &onError))
 			{
 				res.redirect("/blog");
 			}

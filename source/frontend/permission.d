@@ -83,6 +83,7 @@ class AccessDenied:Exception
 
 struct GA 
 {
+
 	USER_ROLE role;
 	
 	string resource;

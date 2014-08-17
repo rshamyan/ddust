@@ -426,7 +426,7 @@ mixin template docsValidator()
 			throw new DocsInvalidData("title", null);
 		}
 
-		if (doc["body"].isNull)
+		if (doc["bodystr"].isNull)
 		{
 			throw new DocsInvalidData("body", null);
 		}
@@ -518,9 +518,9 @@ mixin template docsValidator()
 			throw new InvalidDocType(getType(doc), DocType.BlogDocument);
 		}
 
-		if (doc["body"].isNull)
+		if (doc["bodystr"].isNull)
 		{
-			throw new DocsInvalidData("body", null);
+			throw new DocsInvalidData("bodystr", null);
 		}
 
 		if (doc["author_id"].isNull)
@@ -528,14 +528,14 @@ mixin template docsValidator()
 			throw new DocsInvalidData("author_id", null);
 		}
 
-		if (doc["date"].isNull)
+		if (doc["_date"].isNull)
 		{
-			throw new DocsInvalidData("date", null);
+			throw new DocsInvalidData("_date", null);
 		}
 		
-		if (doc["short"].isNull)
+		if (doc["shortstr"].isNull)
 		{
-			throw new DocsInvalidData("short", null);
+			throw new DocsInvalidData("shortstr", null);
 		}
 
 		return true;

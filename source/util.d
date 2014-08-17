@@ -33,7 +33,9 @@ mixin template dateconv()
 		
 		string datestr() @property
 		{
-			return date.toSimpleString();
+			import std.string;
+			return format("%d/%d/%d %d:%d",date.day,date.month,date.year,date.hour,date.minute);
+				
 		}
 	}
 }
@@ -45,18 +47,11 @@ struct MSG
 	string reason;
 }
 
-interface Immortal
-{
-	final protected static const char[] procCheck = 
-		"static if ((!is(typeof(onError) : Processor))&&(!is(typeof(&onError): Processor)))
-		{
-			pragma(msg ,\"[Docs]Typeof onError must be \", Processor,\" not \", typeof(onError));
-			static assert(false);
-		}";
-}
-
 alias BsonObjectID BID;
 
+alias serializeToBson toBson;
+
+alias deserializeBson fromBson;
 
 string md5str(string str)
 {

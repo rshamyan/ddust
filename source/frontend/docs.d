@@ -6,6 +6,8 @@ import backend.iusers;
 import frontend.users;
 import backend.idocs:DocType;
 
+import util;
+
 package enum DOC_DATA_STATUS:string
 {
 	NO_TITLE="Title is empty",
@@ -21,100 +23,8 @@ package enum DOC_DATA_STATUS:string
 	OK = "OK"
 }
 
-package mixin template doc(T)
-{	
-	static T fromBson(in Bson doc)
-	{
-		T ret;
-		
-		static if (is(typeof(ret.title):string))
-		{
-			ret.title = doc["title"].get!string;
-		}
-		static if (is(typeof(ret.id):string)) 
-		{
-			BsonObjectID id = doc["_id"].get!BsonObjectID;
-			
-			ret.id = id.toString();
-		}
-		static if (is(typeof(ret.author):User))
-		{
-			BsonObjectID author_id = doc["author_id"].get!BsonObjectID;
-			
-			ret.author.id = author_id.toString();
-		}
-		static if (is(typeof(ret.date)))
-		{
-			BsonDate date = doc["date"].get!BsonDate;
-			
-			ret.date = date.toSysTime();
-		}
-		static if (is(typeof(ret.bodystr):string))
-		{
-			ret.bodystr = doc["body"].get!string;
-		}
-		static if (is(typeof(ret.shortstr):string))
-		{
-			ret.shortstr = doc["short"].get!string;
-		}
-		static if (is(typeof(ret.ref_id):string))
-		{
-			BsonObjectID ref_id = doc["_ref"].get!BsonObjectID;
-			
-			ret.ref_id = ref_id.toString();
-		}
-		
-		
-		return ret;
-	}
-	
-	static if (is(typeof(author): User))
-	void fillAuthorInfo(string id, IUsersProvider usersProvider)
-	{
-		author = User.fromID(id, usersProvider);
-	}
-	
-	static if (is(typeof(author): User))
-	void fillAuthorInfoFromLogin(string login,IUsersProvider usersProvider)
-	{
-		author = User.fromLogin(login, usersProvider);
-	}
-	
-	Bson toBson(in T doc)
-	{
-		Bson bson = Bson.emptyObject;
-		static if (is(typeof(doc.title):string))
-		{
-			bson["title"] = Bson(doc.title);
-		}
-		static if (is(typeof(doc.author):User))
-		{
-			bson["author_id"] = Bson(BsonObjectID.fromString(doc.author.id));
-		}
-		static if (is(typeof(doc.date)))
-		{
-			bson["date"] = Bson(BsonDate(doc.date));
-		}
-		static if (is(typeof(doc.bodystr):string))
-		{
-			bson["body"] = Bson(doc.bodystr);
-		}
-		static if (is(typeof(doc.shortstr):string))
-		{
-			bson["short"] = Bson(doc.shortstr);
-		}
-		static if (is(typeof(doc.ref_id):string))
-		{
-			bson["_ref"] = Bson(BsonObjectID.fromString(doc.ref_id));
-		}
-		static if (is(typeof(doc._type):DocType))
-		{
-			bson["_type"] = Bson(cast(int)doc._type);
-		}
-		
-		return bson;
-	}
-	
+package mixin template docValidator(T)
+{
 	DOC_DATA_STATUS status() @property
 	{
 		import std.array;
@@ -167,61 +77,117 @@ package mixin template doc(T)
 		
 		return true;
 	}
+}
+
+package mixin template doc(T)
+{	
+	import util;
+	
+	ignore
+	
+	BID _id;
+	
+	BID author_id;
+	
+	@ignore()
+	User author;
+	
+	BsonDate _date;
+	
+	string id() @property
+	{
+		return _id.toString();
+	}
+	
+	void id(string str) @property
+	{
+		_id = BID.fromString(str);
+	}
+	
+	SysTime date() @property
+	{
+		return _date.toSysTime;
+	}
+	
+	void date(long time) @property
+	{
+		_date = BsonDate.fromStdTime(time);
+	}
+
+	
+	void fillAuthorInfo(string id, IUsersProvider usersProvider)
+	{
+		author = author.fromID(id, usersProvider);
+		author_id = author._id;
+	}
+
+	void fillAuthorInfo(BID id, IUsersProvider usersProvider)
+	{
+		author = author.fromID(id, usersProvider);
+		author_id = author._id;
+	}
+	
+
+	void fillAuthorInfoFromLogin(string login,IUsersProvider usersProvider)
+	{
+		author = author.fromLogin(login, usersProvider);
+		author_id = author._id;
+	}
 	
 	
 	mixin util.dateconv;
 }
 
 package struct Document
-{
+{	
+
+	static immutable DocType _type = DocType.Document;
+	
 	string title;
 	
-	string id;
-	
-	static final DocType _type = DocType.Document;
-	
 	string bodystr;
-	
-	User author;
-	
-	SysTime date;
 
 	mixin doc!Document;
+	
+	mixin docValidator!Document;
 
 }
 
 package struct Comment
 {	
-	string id;
-		
-	string ref_id;
+
+	static immutable DocType _type = DocType.Comment;
 	
-	static final DocType _type = DocType.Comment;
+	BID _ref;
+		
+	string ref_id() @property
+	{
+		return _ref.toString();
+	}
+	
+	void ref_id(string str) @property
+	{
+		_ref = BID.fromString(str);
+	}
 	
 	string bodystr;
-	
-	User author;
-	
-	SysTime date;
 
 	mixin doc!Comment;
+
+	mixin docValidator!Comment;
 }
 
 package struct BlogDocument
-{		
-	string id;
-	
-	static final DocType _type = DocType.BlogDocument;
+{	
+	static DocType _type = DocType.BlogDocument;
 	
 	string bodystr;
 	
 	string shortstr;
 	
 	string title;
-	
-	User author;
-	
-	SysTime date;
 
 	mixin doc!BlogDocument;
+	
+	mixin docValidator!BlogDocument;
 }

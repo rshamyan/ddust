@@ -6,75 +6,62 @@ import std.conv;
 import util;
 
 package struct User
-{			
+{				
 	string login;
 	
-	string username;
-	
-	string id;
-	
-	string email;
-	
-	string firstname;
-	
-	string lastname;
+	BID _id;
 	
 	USER_ROLE role;
 	
-	static User fromBson(Bson bson)
+	@optional()
+	string username;
+	
+	@optional()
+	string email;
+	
+	@optional()
+	string firstname;
+	
+	@optional()
+	string lastname;
+	
+	@optional()
+	BsonDate regdate;
+	
+	@ignore()
+	string id() @property
 	{
-		User ret;
-		
-		foreach(string k, v; bson)
-		{
-			if (k == "login") 
-			{
-				ret.login = v.get!string;
-			}
-			else if (k == "_id") 
-			{
-				auto id = v.get!BsonObjectID;
-				ret.id = id.toString();
-			}
-			else if (k == "username")
-			{
-				ret.username = v.get!string;
-			}
-			else if (k == "email")
-			{
-				ret.email = v.get!string;
-			}
-			else if (k == "firstname")
-			{
-				ret.firstname = v.get!string;
-			}
-			else if (k == "lastname")
-			{
-				ret.lastname = v.get!string;
-			}
-			else if (k == "role")
-			{
-				ret.role = cast(USER_ROLE) v.get!int;
-			}
-		}
-		
-		return ret;
+		return _id.toString();
+	}
+	
+	@ignore()
+	void id(string str) @property
+	{
+		_id = BID.fromString(str);
 	}
 	
 	static User fromID(string id, IUsersProvider usersProvider)
 	{
 		Bson res = usersProvider.queryUserInfoFromID(BsonObjectID.fromString(id));
 
-		return fromBson(res);
+		return fromBson!User(res);
+	}
+
+	static User fromID(BID id, IUsersProvider usersProvider)
+	{
+		Bson res = usersProvider.queryUserInfoFromID(id);
+
+		return fromBson!User(res);
 	}
 	
 	static User fromLogin(string login, IUsersProvider usersProvider)
 	{
 		Bson res = usersProvider.queryUserInfo(login);
 		
-		return fromBson(res);
+		return fromBson!User(res);
 	}
 	
+	@ignore()
 	string name() @property
 	{
 		if ( username is null)
@@ -249,6 +236,8 @@ package mixin template t_register()
 		
 		string repassword;
 		
+		USER_ROLE role;
+		
 		REG_DATA_STATUS status() @property
 		{
 			if (!isValidLogin(login)) return REG_DATA_STATUS.INVALID_LOGIN;
@@ -329,50 +318,24 @@ package mixin template t_profile()
 		
 		string login;
 		
+		@optional()
 		string username;
 		
+		@optional()
 		string firstname;
 		
+		@optional()
 		string lastname;
 		
+		@optional()
 		string email;
 		
+		@ignore()
 		string gravatarUrl() @property
 		{
 			return format("%s%s?s=200&d=identicon","http://www.gravatar.com/avatar/",toLower(md5str(email)));
 		}
 
-		
-		static ProfileData fromBson(in Bson bson)
-		{
-			ProfileData ret;
-			
-			foreach(string k,v; bson)
-			{
-				if (k=="login")
-				{
-					ret.login = v.get!string;
-				}
-				else if (k=="username")
-				{
-					ret.username = v.get!string;
-				}
-				else if (k=="firstname")
-				{
-					ret.firstname = v.get!string;
-				}
-				else if(k=="lastname")
-				{
-					ret.lastname = v.get!string;
-				}
-				else if(k=="email")
-				{
-					ret.email = v.get!string;
-				}
-			}
-			
-			return ret;
-		}
 		
 		PROFILE_DATA_STATUS status()
 		{	
@@ -400,23 +363,6 @@ package mixin template t_profile()
 			return PROFILE_DATA_STATUS.OK;
 		}
 		
-		Bson toBson()
-		{
-			Bson bson = Bson.emptyObject();
-			
-			bson["login"] = login;
-			
-			bson["username"] = username;
-			
-			bson["firstname"] = firstname;
-			
-			bson["email"] = email;
-			
-			bson["lastname"] = lastname;
-			
-			return bson;
-		}
-		
 		
 	}
 	
@@ -431,7 +377,7 @@ package mixin template t_profile()
 		{
 			auto userInfo = usersProvider.queryUserInfo(login);
 			
-			ProfileData data = ProfileData.fromBson(userInfo);
+			ProfileData data = fromBson!ProfileData(userInfo);
 			
 			res.renderCompat!("ddust.profile.dt", HTTPServerRequest, "req", ProfileData, 
 				"profile_data", MSG, "message")(req, data, MSG());
@@ -473,7 +419,7 @@ package mixin template t_profile()
 				reason = ex.msg;
 			}
 			
-			auto msg = usersProvider.updateProfile(profileData.login, profileData.toBson(), &onError);
+			auto msg = usersProvider.updateProfile(profileData.login, profileData.toBson, &onError);
 			
 			if (msg)
 			{

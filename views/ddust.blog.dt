@@ -13,13 +13,13 @@ block body
 					hr
 					p
 						span.glyphicon.glyphicon-time
-							| Posted on #{doc.datestr}
+						| Posted on #{doc.datestr}
 					hr
 					p
 						|!=doc.shortstr
 					a.btn.btn-primary(href='/blog/entry/#{doc.id}')
 						| Read more
-						span.glyphicon.glyphicon-chevron-right
+							span.glyphicon.glyphicon-chevron-right
 					hr
 
 			.col-lg-4
